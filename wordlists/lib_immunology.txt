@@ -1,0 +1,295 @@
+Adaptive immunity
+Adenoid
+Adjuvant
+Agglutination
+Allergen
+Allergic reaction
+Allergic rhinitis
+Allergy
+Allograft
+Alloimmunity
+Allotype
+Alveolar macrophage
+Anaphylactic shock
+Anaphylaxis
+Anaphylatoxin
+Antibody
+Antibody affinity
+Antibody-dependent cell-mediated cytotoxicity (ADCC)
+Antibody diversity
+Antibody production
+Antibody structure
+Antibody titer
+Antigen
+Antigen processing
+Antigen presentation
+Antigen-presenting cell (APC)
+Antigen receptor
+Antigen recognition
+Antigenicity
+Antigenic determinant
+Antigenic drift
+Antigenic shift
+Antihistamine
+Antimicrobial peptides
+Antinuclear antibodies
+Antiphospholipid antibodies
+Antiserum
+Anergy
+Apoptosis
+Autoantibodies
+Autoimmune disease
+Autoimmunity
+Autologous
+Autophagy
+B cell
+B cell activation
+B cell receptor (BCR)
+B cell memory
+Bacteremia
+Basophil
+B-cell lymphoma
+Bone marrow
+C-reactive protein (CRP)
+C3 convertase
+C5 convertase
+Cancer immunotherapy
+Capsule (bacterial)
+Carcinogenesis
+CD4+ T cell
+CD8+ T cell
+CD markers
+Cell-mediated immunity
+Cellular immunity
+Central tolerance
+Chemokine
+Chemotaxis
+Chronic inflammation
+Clonal anergy
+Clonal deletion
+Clonal expansion
+Clonal selection
+Complement
+Complement activation
+Complement cascade
+Complement pathway
+Concanavalin A (ConA)
+Congenital immunodeficiency
+Constant region
+Cytokine
+Cytokine release syndrome
+Cytokine storm
+Cytokine therapy
+Cytokine-induced killer cells
+Cytolysis
+Cytotoxicity
+Cytotoxic T cell (CTL)
+Dendritic cell
+Delayed-type hypersensitivity
+Diapedesis
+Direct antigen recognition
+Disulfide bond
+DNA vaccine
+Effector cell
+Effector memory T cells
+Eicosanoids
+ELISA (enzyme-linked immunosorbent assay)
+Endogenous antigen
+Endotoxin
+Eosinophil
+Epitope
+Epitope mapping
+Fc receptor
+Fc region
+Fcγ receptor
+Fcε receptor
+Flow cytometry
+Gamma globulin
+Gastrointestinal immunity
+Graft rejection
+Graft-versus-host disease (GVHD)
+Granulocyte
+Granuloma
+Granzymes
+Helper T cell
+Histamine
+Histocompatibility
+HLA (human leukocyte antigen)
+HLA class I
+HLA class II
+Humoral immunity
+Hybridoma
+Hyper IgM syndrome
+Hypersensitivity
+Hypersensitivity reaction
+Hypoallergenic
+Idiotype
+IgA (immunoglobulin A)
+IgD (immunoglobulin D)
+IgE (immunoglobulin E)
+IgG (immunoglobulin G)
+IgM (immunoglobulin M)
+Immune activation
+Immune checkpoint
+Immune checkpoint blockade
+Immune complex
+Immune memory
+Immune modulation
+Immune privilege
+Immune response
+Immune surveillance
+Immune system
+Immune tolerance
+Immunity
+Immunization
+Immunocompetence
+Immunocompromised
+Immunodeficiency
+Immunoelectrophoresis
+Immunofluorescence
+Immunogen
+Immunogenicity
+Immunoglobulin
+Immunohistochemistry
+Immunology
+Immunomodulation
+Immunopathology
+Immunophenotyping
+Immunoprecipitation
+Immunoprotein
+Immunosorbent assay
+Immunosuppressant
+Immunosuppression
+Immunotherapy
+Innate immunity
+Integrin
+Interferon
+Interferon-gamma
+Interleukin
+Interleukin-1 (IL-1)
+Interleukin-2 (IL-2)
+Interleukin-6 (IL-6)
+Interleukin-10 (IL-10)
+Interleukin-12 (IL-12)
+Intradermal injection
+Intranasal immunization
+Intravenous immunoglobulin (IVIG)
+Invariant chain
+Isotype
+Isotype switching
+Killer T cell
+Killer-cell immunoglobulin-like receptor (KIR)
+Kinin
+Lactoferrin
+Langerhans cell
+Latex allergy
+Lectin
+Lentivirus
+Leukocyte
+Leukocytosis
+Leukopenia
+Lymph
+Lymph node
+Lymphadenitis
+Lymphadenopathy
+Lymphatic system
+Lymphocyte
+Lymphocyte activation
+Lymphocyte proliferation
+Lymphocyte recirculation
+Lymphokine
+Macrophage
+Macrophage activation
+Macrophage inflammatory protein (MIP)
+Major histocompatibility complex (MHC)
+MALT (mucosa-associated lymphoid tissue)
+Mannose-binding lectin
+Mast cell
+Memory B cell
+Memory T cell
+Microbial antigen
+Microglia
+Mitogen
+Monocyte
+Monokine
+Mononuclear phagocyte system
+Mucosal immunity
+Multiple myeloma
+Natural antibody
+Natural killer (NK) cell
+Neutralization
+Neutrophil
+NOD-like receptor
+Nonspecific immunity
+Opsonin
+Opsonization
+Oral tolerance
+Organ-specific autoimmunity
+Passive immunity
+Pathogen-associated molecular patterns (PAMPs)
+Pattern recognition receptor (PRR)
+Perforin
+Peripheral tolerance
+Phagocyte
+Phagocytosis
+Phagosome
+Plasma cell
+Plasma protein
+Plasmapheresis
+Polyclonal antibody
+Polymorphonuclear leukocyte (PMN)
+Positive selection
+Primary immune response
+Proinflammatory cytokine
+Protective immunity
+Receptor
+Receptor editing
+Regulatory T cell (Treg)
+Rheumatoid factor
+Rituximab
+Secretory IgA
+Self-antigen
+Self-tolerance
+Sensitization
+Seroconversion
+Serology
+Serum
+Serum protein electrophoresis
+Sialic acid
+Signal transduction
+Somatic hypermutation
+Specific immunity
+Splenectomy
+Splenomegaly
+Stem cell transplantation
+Suppressor T cell
+Surface antigen
+T cell
+T cell activation
+T cell receptor (TCR)
+T-helper cell
+T-cell dependent antigens
+T-cell independent antigens
+T-cell receptor complex
+T-helper cell 1 (Th1)
+T-helper cell 2 (Th2)
+T-helper cell 17 (Th17)
+Thymocyte
+Thymus
+Tissue compatibility
+Toll-like receptor (TLR)
+Tolerance
+Toll-like receptors (TLRs)
+Transplant rejection
+Tumor antigen
+Tumor immunology
+Tumor-infiltrating lymphocyte (TIL)
+Vaccine
+Variable region
+Vasoactive intestinal peptide (VIP)
+Viral antigen
+Virus neutralization test
+Western blot
+Xenograft
+X-linked agammaglobulinemia (XLA)
+Zymosan

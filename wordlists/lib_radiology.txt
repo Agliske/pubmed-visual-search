@@ -1,0 +1,379 @@
+Abdominal radiography
+Absorbed dose
+Absorptiometry
+Acoustic impedance
+Acoustic shadowing
+Acquired dose
+Active shielding
+Acute radiation syndrome
+ADC (Apparent diffusion coefficient)
+Aliasing
+Alkylating agent
+Alpha particle
+Aluminum filter
+Anaphylactoid reaction
+Angiogram
+Angiography
+Anode
+Anteroposterior view
+Artifact
+Attenuation
+Automatic exposure control (AEC)
+Axial imaging
+Barium enema
+Barium swallow
+Beam hardening
+Beam profile
+Bilateral mammography
+Biopsy
+Bone densitometry
+Bone scan
+Breast tomosynthesis
+Bremsstrahlung radiation
+Brightness
+Bucky grid
+Calcification
+Cardiac catheterization
+Carotid ultrasound
+C-arm fluoroscopy
+Catheter angiography
+CBCT (Cone-beam computed tomography)
+Cellular dosimetry
+Central line placement
+Cephalometric radiograph
+Cerebral angiogram
+Cerebral MRI
+Chest CT
+Chest radiography
+Chest X-ray
+Cine angiography
+Cine MRI
+Clinical radiology
+Collateral flow
+Collimation
+Color Doppler
+Computed radiography
+Computed tomography (CT)
+Cone beam reconstruction
+Contrast agent
+Contrast-enhanced CT
+Contrast-enhanced ultrasound
+Contrast media
+Contrast resolution
+Contrast-induced nephropathy
+Conventional radiography
+Coronal imaging
+CT angiography
+CT colonography
+CT density
+CT dose index
+CT enterography
+CT fluoroscopy
+CT myelogram
+CT perfusion
+CT reconstruction
+CT scout
+CT windowing
+Cycle time
+Cystography
+Cystoscopy
+Darkroom
+Decompression sickness
+Deep brain stimulation
+Dental radiography
+Detector array
+Digital mammography
+Digital radiography (DR)
+Dilatation
+Diffuse weighted imaging (DWI)
+Digital subtraction angiography (DSA)
+Dilatation and curettage
+Direct digital radiography
+Dose calculation
+Dose calibration
+Dose equivalent
+Dose limit
+Dose rate
+Dose-response relationship
+Dose-volume histogram
+Dosimeter
+Dosimetry
+Double contrast barium enema
+Doppler echocardiography
+Doppler ultrasound
+Dual-energy CT
+Dual-energy X-ray absorptiometry (DEXA)
+Dynamic imaging
+Dynamic range
+Dynamic susceptibility contrast MRI
+Dynamic volume CT
+Echocardiography
+Echo time
+Electron beam tomography (EBT)
+Electromagnetic radiation
+Endoscopic ultrasound (EUS)
+Enteroclysis
+Epidurogram
+Equivalent dose
+Esophagram
+Extravascular contrast
+Eye shield
+Fast spin echo
+Fat suppression
+Fibroglandular tissue
+Film badge dosimeter
+Film density
+Film-screen radiography
+Fluorescent screen
+Fluoroscopy
+Flow void
+Focal spot size
+Fractal analysis
+Free induction decay
+Frequency encoding
+Functional MRI (fMRI)
+Gamma camera
+Gamma knife
+Gamma radiation
+Gamma ray
+Gantry tilt
+Gradient echo
+Gradient field
+Gradient coil
+Gradient strength
+Gray (unit of radiation dose)
+Grid cutoff
+Half-life
+Half-value layer
+Helical CT
+Helical scanning
+High-resolution CT (HRCT)
+Hounsfield unit
+Hyperdense
+Hyperechoic
+Hypodense
+Hypoechoic
+Image acquisition
+Image contrast
+Image density
+Image fusion
+Image-guided biopsy
+Image-guided radiation therapy (IGRT)
+Image intensifier
+Image matrix
+Image processing
+Image quality
+Image reconstruction
+Image registration
+Image segmentation
+Imaging artifact
+Imaging plane
+Imaging protocol
+In-phase imaging
+Infarct
+Infrared thermography
+Informed consent
+Inhomogeneity correction
+Intra-arterial contrast
+Intravascular ultrasound (IVUS)
+Inversion recovery
+Ion beam therapy
+Ion chamber
+Ionizing radiation
+Isocenter
+Isodose curve
+Isotope scanning
+IV contrast
+IVP (intravenous pyelogram)
+Junctional dose
+K-edge imaging
+Kidney ultrasound
+Kiloelectronvolt (keV)
+Kilovolt peak (kVp)
+Larmor frequency
+Lateral view
+Lead apron
+Lead shielding
+Left anterior oblique view
+Left lateral decubitus view
+Linear attenuation coefficient
+Linear energy transfer
+Liver elastography
+Liver MRI
+Liver ultrasound
+Longitudinal relaxation time
+Low-dose CT
+Low-field MRI
+Lumbar puncture
+Lung biopsy
+Lung nodule
+Lymphangiogram
+Magnetic field strength
+Magnetic resonance angiography (MRA)
+Magnetic resonance imaging (MRI)
+Magnetic resonance spectroscopy (MRS)
+Magnetization
+Mammogram
+Mammography
+Maximum intensity projection (MIP)
+Mechanical index
+Medial oblique view
+Medium-energy collimator
+Megavoltage radiation
+Metal artifact
+Metastatic disease
+Molybdenum filter
+Multi-detector CT (MDCT)
+Multiparametric MRI
+Multiplanar reconstruction (MPR)
+Multiple sclerosis imaging
+Myelography
+N-acetyl cysteine (NAC)
+Nanoemulsion contrast
+Nephrography
+Nephrostomy tube
+Non-contrast CT
+Non-ionizing radiation
+Nuclear cardiology
+Nuclear imaging
+Nuclear magnetic resonance
+Nuclear medicine
+Oblique imaging
+Occipital view
+Octreotide scan
+Off-center artifact
+Optical coherence tomography (OCT)
+Osteodensity
+Osteoporotic fracture
+Ovarian ultrasound
+Pacemaker MRI safety
+Panoramic radiography
+Parathyroid scan
+Partial volume effect
+Peak kilovoltage
+Penumbra
+Perfusion imaging
+Peripheral angiography
+Phased array coil
+Photon beam
+Photon emission
+Photostimulable phosphor plate
+Picture archiving and communication system (PACS)
+Pixel
+Planar imaging
+Plane film
+Portal vein ultrasound
+Positron emission tomography (PET)
+Post-contrast imaging
+Posteroanterior (PA) view
+Precession frequency
+Projection radiography
+Proton beam therapy
+Proton density
+Pulse sequence
+Pulmonary angiogram
+Pulmonary artery catheter
+Pulmonary embolism imaging
+Quantitative computed tomography (QCT)
+Quantum noise
+Radiation absorbed dose
+Radiation biology
+Radiation field
+Radiation oncology
+Radiation physics
+Radiation safety
+Radiation therapy
+Radiobiology
+Radiofrequency coil
+Radiofrequency pulse
+Radiograph
+Radiographic density
+Radiographic positioning
+Radiographic resolution
+Radiography
+Radioisotope
+Radiologist
+Radiology
+Radionuclide imaging
+Radiopharmaceutical
+Radiopharmacy
+Radiosensitivity
+Radiosurgery
+Radiotherapy
+Real-time imaging
+Reconstruction algorithm
+Rectilinear scanner
+Reference dose
+Reference image
+Region of interest (ROI)
+Relaxation time
+Repetition time (TR)
+Resonance frequency
+Respiratory gating
+Retrospective reconstruction
+Roentgen
+Roentgenogram
+Sagittal plane
+Scatter radiation
+Scintigraphy
+Scintillation detector
+Scintillation screen
+Screen-film radiography
+Screening mammogram
+Seldinger technique
+Sensitivity encoding (SENSE)
+Short-axis view
+Single-photon emission computed tomography (SPECT)
+Slice thickness
+Sonography
+Spatial resolution
+Spectral CT
+Spectral Doppler
+SPECT-CT
+Spin echo
+Spiral CT
+Static magnetic field
+Steady-state imaging
+Stereotactic body radiation therapy (SBRT)
+Stereotactic radiosurgery (SRS)
+Stereotactic ultrasound
+Subtraction imaging
+Supine view
+Susceptibility artifact
+T1-weighted imaging
+T2-weighted imaging
+Target dose
+Temporal resolution
+Therapeutic radiology
+Thermography
+Thoracic CT
+Thoracic MRI
+Thoracic ultrasound
+Thyroid scintigraphy
+Tomographic imaging
+Tomosynthesis
+Transcranial Doppler
+Transducer
+Transrectal ultrasound
+Transverse plane
+Treatment plan
+Truncation artifact
+Ultrasound
+Ultrasound elastography
+Ultrasound-guided biopsy
+Uniformity
+Uptake
+Urology imaging
+V/Q scan (ventilation/perfusion scan)
+Vascular ultrasound
+Velocity encoding
+Venogram
+Ventilation scan
+Virtual colonoscopy
+Voxel
+X-ray
+X-ray attenuation
+X-ray tube
+Yttrium-90
+Zero echo time MRI
+Zone of sharpness

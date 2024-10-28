@@ -1,0 +1,364 @@
+Absolute zero
+Acceleration
+Acoustic impedance
+Action-at-a-distance
+Adiabatic process
+Air resistance
+Alpha decay
+Alternating current (AC)
+Ampere
+Amplitude
+Angular acceleration
+Angular momentum
+Anisotropy
+Antimatter
+Antineutrino
+Antiparticle
+Aperture
+Archimedes' principle
+Astrophysics
+Atomic mass unit (AMU)
+Atomic nucleus
+Atomic number
+Avogadro's number
+Background radiation
+Balmer series
+Band gap
+Bar magnet
+Barrier potential
+Barrel distortion
+Beat frequency
+Bernoulli's principle
+Beta decay
+Big Bang theory
+Binding energy
+Biot-Savart law
+Black body
+Black hole
+Bohr model
+Boltzmann constant
+Boson
+Boyle's law
+Bragg's law
+Bremsstrahlung
+Brownian motion
+Buoyancy
+Capacitance
+Capacitor
+Carnot cycle
+Cartesian coordinates
+Casimir effect
+Catalysis
+Cathode
+Centrifugal force
+Centripetal acceleration
+Centripetal force
+Charge density
+Charles's law
+Cherenkov radiation
+Chromatic aberration
+Classical mechanics
+Coherent light
+Coherence length
+Compton effect
+Conduction
+Conservation of angular momentum
+Conservation of energy
+Conservation of linear momentum
+Conservation of mass
+Constructive interference
+Convection
+Coriolis effect
+Coulomb's law
+Covalent bond
+Critical angle
+Critical mass
+Critical temperature
+Cross section
+Curie temperature
+Cyclotron
+Dark energy
+Dark matter
+De Broglie wavelength
+Decay constant
+Deformation
+Density
+Destructive interference
+Dielectric constant
+Diffraction
+Diffraction grating
+Diffusion
+Dipole moment
+Direct current (DC)
+Dispersion
+Displacement current
+Doppler effect
+Double-slit experiment
+Drag force
+Ductility
+Dynamics
+Eddy current
+Elasticity
+Electric charge
+Electric circuit
+Electric current
+Electric dipole
+Electric field
+Electric flux
+Electric potential
+Electromagnetic induction
+Electromagnetic spectrum
+Electromagnetic wave
+Electron affinity
+Electron capture
+Electron cloud
+Electron configuration
+Electron microscope
+Electron orbit
+Electron spin
+Electron volt (eV)
+Elementary particle
+Elliptical orbit
+Emission spectrum
+Energy density
+Energy level
+Entropy
+Equilibrium
+Equipotential surface
+Euler's equations
+Excitation energy
+Exothermic reaction
+Faraday cage
+Faraday constant
+Faraday's law
+Fermat's principle
+Fermion
+Field line
+Fluorescence
+Fluid dynamics
+Force
+Frame of reference
+Friction
+Galilean transformation
+Gamma decay
+Gamma ray
+Gauge symmetry
+Gauss's law
+Geodesic
+Geothermal energy
+Gluon
+Gravitational constant
+Gravitational field
+Gravitational lensing
+Gravitational potential energy
+Gravitational wave
+Graviton
+Ground state
+Gyroscope
+Half-life
+Hamiltonian
+Heat capacity
+Heat conduction
+Heat engine
+Heat of fusion
+Heat of vaporization
+Heisenberg uncertainty principle
+Higgs boson
+Hooke's law
+Hubble constant
+Huygens' principle
+Hydrostatic pressure
+Hyperbolic trajectory
+Ideal gas law
+Impact parameter
+Impulse
+Inertia
+Inertial frame
+Inertial mass
+Insulator
+Interference pattern
+Ionization
+Ionization energy
+Irreversible process
+Isotope
+Joule
+Joule heating
+Kinetic energy
+Kirchhoff's laws
+Klein-Gordon equation
+Lagrangian
+Laplace's equation
+Laser
+Latent heat
+Law of reflection
+Law of refraction
+Length contraction
+Lenz's law
+Lepton
+Light-year
+Line of action
+Line spectrum
+Linear momentum
+Lorentz force
+Lorentz transformation
+Magnetic dipole
+Magnetic field
+Magnetic flux
+Magnetic monopole
+Magnetism
+Magnification
+Mass defect
+Mass-energy equivalence
+Mass number
+Mass spectrometry
+Maxwell's equations
+Mean free path
+Mechanical advantage
+Mechanical energy
+Meson
+Michelson interferometer
+Microwave radiation
+Millikan oil-drop experiment
+Modulus of elasticity
+Molecule
+Moment of inertia
+Momentum
+Monochromatic light
+Motion
+Neutrino
+Neutron star
+Newton's first law
+Newton's law of gravitation
+Newton's second law
+Newton's third law
+Node
+Non-inertial frame
+Normal force
+Nuclear binding energy
+Nuclear fission
+Nuclear force
+Nuclear fusion
+Nuclear magnetic resonance
+Nuclear physics
+Nuclear reactor
+Nucleon
+Nucleosynthesis
+Ohm's law
+Optical fiber
+Optical path length
+Optics
+Oscillation
+Pascal's law
+Pauli exclusion principle
+Pendulum
+Permeability
+Permittivity
+Phase change
+Phase difference
+Photoelectric effect
+Photon
+Photonic crystal
+Photovoltaic effect
+Planck constant
+Planck's law
+Plasma
+Poisson distribution
+Polarization
+Positron
+Potential energy
+Power
+Pressure
+Principle of superposition
+Projectile motion
+Proportionality constant
+Proton
+Pulsar
+Quantum chromodynamics
+Quantum entanglement
+Quantum field theory
+Quantum mechanics
+Quantum number
+Quantum spin
+Quark
+Radiant energy
+Radioactive decay
+Radiocarbon dating
+Radiowave
+Rayleigh scattering
+Redshift
+Reflection coefficient
+Refractive index
+Relativistic mass
+Relativity
+Resistor
+Resistance
+Resonance
+Reversible process
+Right-hand rule
+Rigid body
+Rotational inertia
+Scalar field
+Schwarzschild radius
+Second law of thermodynamics
+Shear stress
+Simple harmonic motion
+Snell's law
+Solar cell
+Solar constant
+Solid angle
+Sound wave
+Specific gravity
+Specific heat capacity
+Spectroscopy
+Spin
+Standard model
+Standing wave
+Static equilibrium
+Statistical mechanics
+Stefan-Boltzmann constant
+String theory
+Strong nuclear force
+Sublimation
+Superconductor
+Superfluidity
+Superposition principle
+Surface tension
+System
+Tachyon
+Temperature
+Tesla
+Thermal conductivity
+Thermal equilibrium
+Thermal expansion
+Thermodynamics
+Thomson scattering
+Threshold frequency
+Time dilation
+Torque
+Total internal reflection
+Transformer
+Translational motion
+Transverse wave
+Turbulence
+Ultraviolet radiation
+Uncertainty principle
+Van der Waals forces
+Vector field
+Velocity
+Virtual particle
+Viscosity
+Voltage
+Voltaic cell
+Wave function
+Wave-particle duality
+Wavelength
+Weak nuclear force
+Weightlessness
+White dwarf
+Work function
+X-ray crystallography
+Zero-point energy
+Zeroth law of thermodynamics
+Zeeman effect
+Zener diode
+Zone plate
