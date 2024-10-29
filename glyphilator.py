@@ -46,7 +46,7 @@ def wordlists_from_folder(filepath):
         if file.endswith('.txt'):
             list_txt_filepaths.append(filepath + r"\\" + file)
     
-    print(list_txt_filepaths)
+    
     wordlists = []
     for file in list_txt_filepaths:
         wordlist = wordlist_from_txtFile(file)
@@ -55,6 +55,16 @@ def wordlists_from_folder(filepath):
     return wordlists
 
 def generateGlyphInput(articleData, wordlists):
+    """
+    generateGlyphInput _summary_
+
+    Args:
+        articleData (list of dict): each dict contains content and metadata, all stacked in a list of results for multiple articles
+        wordlists (list of list): each element of list is one list of strings, containing search terms for a particular subject
+
+    Returns:
+        (list of list): list of list containing floats, which scale each glyph element
+    """
 
     allGlyphData = [] #list of lists. List of all of the information needed to build all glyphs with the specified wordlists. Each element in list corresponds to the info to build one glyph.
     for i in range(0,len(articleData)):
@@ -73,7 +83,7 @@ def generateGlyphInput(articleData, wordlists):
             for search_word in wordlist: #for each word in the wordlist, find any matches in the text, and add them to the total hits for that wordlist
 
                 matches = difflib.get_close_matches(search_word,text_words,n=20,cutoff=0.6)
-                print("there were ",len(matches)," matches. The match was",str(matches),)
+                # print("there were ",len(matches)," matches. The match was",str(matches),)
                 wordlist_hits = wordlist_hits + len(matches)
             
             #END FOR search_word in wordlist
@@ -91,8 +101,8 @@ def generateGlyphInput(articleData, wordlists):
     scaler.fit(allGlyphData)
 
     scaledAllGlyphData = scaler.transform(allGlyphData)
-    print('we scaled allGlyphData')
-    print(scaledAllGlyphData)
+    # print('we scaled allGlyphData')
+    # print(scaledAllGlyphData)
     
     return scaledAllGlyphData
 
@@ -160,8 +170,12 @@ def constructBasicGlyphs(allGlyphData):
         
 
         #placing the root glyph on the x-y plane
-        
+        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = None
+        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'].astype('float')
         working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = glyphLocations[i][0] #selecting rows where parent_id ==0 (root glyph element), and the translate_x column, and writing the corresponding value of glyphLocations,
+
+        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] =None
+        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'].astype(float)
         working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = glyphLocations[i][1] #so we add the x,y coord of where we want the glyph
     
         
@@ -197,13 +211,13 @@ def constructBasicGlyphs(allGlyphData):
 
 # print(evenlySpacedAngles(4))
 
-articleData = [{"content" : "hello"},{"content":"the thing is actually pie"}]
+# articleData = [{"content" : "hello"},{"content":"the thing is actually pie"}]
 
-print(type(articleData[1]))
-print(type(articleData[1]["content"]))
+# print(type(articleData[1]))
+# print(type(articleData[1]["content"]))
 
-wordlists_path = os.path.join(cwd,"wordlists")
-wordlists = wordlists_from_folder(wordlists_path)
+# wordlists_path = os.path.join(cwd,"wordlists")
+# wordlists = wordlists_from_folder(wordlists_path)
 # print(wordlists_from_folder(wordlists_path))
 # allglyphdata = generateGlyphInput(articleData, wordlists)
 # print(allglyphdata)

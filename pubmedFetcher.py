@@ -75,6 +75,7 @@ def pubmedResults(search_url,num_results_requested = 200):
     }
 
     articleData = []
+    iterator = 0
     for url in links:
         resultResponse = requests.get(url)
         result_html = resultResponse.text
@@ -123,6 +124,8 @@ def pubmedResults(search_url,num_results_requested = 200):
             resultData["date"] = "Date not found"
             
         articleData.append(resultData)
+        iterator = iterator + 1
+        print("Articles Processed: ", iterator, " out of: ",len(links))
         
     return articleData
 
@@ -130,7 +133,7 @@ def pubmedResults(search_url,num_results_requested = 200):
 
 
 
-articleData = pubmedResults(url,10)
-print(type(articleData))
+# articleData = pubmedResults(url,10)
+# print(type(articleData))
 # for i in articleData:
 #     print(articleData[i]["content"])
