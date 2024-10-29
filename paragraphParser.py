@@ -3,9 +3,9 @@ from bs4 import BeautifulSoup
 from bs4 import Comment
 import requests
 import lxml
-import selenium
 import time
 
+import selenium
 import selenium.webdriver
 import selenium.webdriver.firefox
 import selenium.webdriver.firefox.options
@@ -42,6 +42,8 @@ def articleParse(url, method = 0):
         soup = BeautifulSoup(html_content, 'lxml')
         paragraphs = soup.find_all(string=True)
 
+    if method == 3:
+        print("Can't Parse article at the following URL:" , url , "\n Moving to next result")
 
     # print("we got past pagegen")
 
