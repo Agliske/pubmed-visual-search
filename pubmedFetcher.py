@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import lxml
 import requests
 import time
+import re
 
 import selenium
 import selenium.webdriver
@@ -33,8 +34,8 @@ def pubmedResults(search_url,num_results_requested = 200):
     ######################################################################################################################
 
     if num_results_requested <= 200: # use requests lib
-
-        response = requests.get(url)
+        
+        response = requests.get(search_url)
         html_content = response.text
 
     else: #use selenium lib and press "show more results" button until all results are shown
@@ -42,7 +43,7 @@ def pubmedResults(search_url,num_results_requested = 200):
         options = selenium.webdriver.FirefoxOptions()
         options.add_argument("--headless")
         driver = selenium.webdriver.Firefox(options=options)
-        driver.get(url)
+        driver.get(search_url)
 
         time.sleep(3)
 
@@ -78,18 +79,58 @@ def pubmedResults(search_url,num_results_requested = 200):
         resultResponse = requests.get(url)
         result_html = resultResponse.text
 
+        result_soup = BeautifulSoup(result_html,'lxml')
+
         resultData["url"] = url
+        
 
         try:
-            abstract_raw = soup.find('div', {'class': 'abstract-content selected'}).find_all('p')
-            # Some articles are in a split background/objectives/method/results style, we need to join these paragraphs
-            abstract = ' '.join([paragraph.text.strip() for paragraph in abstract_raw])
+            abstract_element = result_soup.find("div", class_ = "abstract-content selected")
+            abstract_raw = abstract_element.find_all('p')
+            paragraphs = []
+            for p in abstract_raw:
+                paragraphs.append(p.text.strip())
+            
+            abstract = ''.join(paragraphs)
+            resultData["content"] = abstract
         except:
-            abstract = 'NO_ABSTRACT'
+            abstract = 'No abstract'
+            resultData["content"] = abstract
+            
+
+        try:
+
+            title_element = result_soup.find('h1', class_ = "heading-title")
+            title = title_element.text.strip()
+            resultData["title"] = title
+
+
+        except:
+            resultData["title"] = "title not found"
+        
+
+        try:
+            cit = result_soup.find('span', class_ = "cit")
+            cit_text = cit.text
+            year = re.search(r"(\d{4})", cit_text)
+            year = year.group()
+            month = re.search(r"([A-Za-z]{3})",cit_text)
+            month = month.group()
+            resultData["date"] = month + ", " + year
+           
+
+        except:
+            resultData["date"] = "Date not found"
+            
+        articleData.append(resultData)
+        
+    return articleData
 
         
 
 
 
-links = pubmedResults(url)
-print(links)
+articleData = pubmedResults(url,10)
+print(type(articleData))
+# for i in articleData:
+#     print(articleData[i]["content"])
