@@ -7,10 +7,9 @@ wordlists_path = r"C:\Users\aglis\Documents\Python_Projects\DaveArticleScraper\w
 
 wordlists = wordlists_from_folder(wordlists_path)
 print("Wordlists generated")
-print(wordlists[-1])
-# articleData = pubmedResults(search_url=search_url, num_results_requested=50)
-# print("articleData compiled")
-# allGlyphData = generateGlyphInput(articleData=articleData,wordlists=wordlists)
+articleData = pubmedResults(search_url=search_url, num_results_requested=20)
+print("articleData compiled")
+allGlyphData = generateGlyphInput(articleData=articleData,wordlists=wordlists)
 # print("glyphilator input complete")
 # antzfile = constructBasicGlyphs(allGlyphData=allGlyphData)
 

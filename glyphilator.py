@@ -125,9 +125,9 @@ def generate_centered_grid(N, step=1): # N: integer number of points we want gen
     
     return coordinates
 
-def evenlySpacedAngles(N): #N: how many elements we want evenly spaced around 360deg object
+def evenlySpacedAngles(N,objAngle = 360): #N: how many elements we want evenly spaced around 360deg object
     
-    step = 360/N
+    step = objAngle/N
     angles = []
     for i in range(0,N):
         
@@ -136,7 +136,50 @@ def evenlySpacedAngles(N): #N: how many elements we want evenly spaced around 36
     
     return angles #the angles at which our N points exist
 
+def chooseBasicColors(allGlyphData):
+    """
+    chooseBasicColors Selects the appropriate colors based upon how many glyph branch 2 elements there are. AKA chooses a color for each wordlist
+
+    Args:
+        allGlyphData (list of list): list of list containing floats, which scale each glyph element
+
+    Returns:
+        (list of list): list containing x entries, which are each a list of 3 integers, representing RGB 0-255 values.
+    """
+    roygbiv_gradient = [
+        [255, 0, 0], [255, 25, 0], [255, 50, 0], [255, 75, 0], [255, 100, 0],  # R -> O
+        [255, 125, 0], [255, 150, 0], [255, 175, 0], [255, 200, 0], [255, 225, 0],
+        [255, 255, 0], [225, 255, 0], [200, 255, 0], [175, 255, 0], [150, 255, 0],  # O -> Y
+        [125, 255, 0], [100, 255, 0], [75, 255, 0], [50, 255, 0], [25, 255, 0],
+        [0, 255, 0], [0, 255, 25], [0, 255, 50], [0, 255, 75], [0, 255, 100],  # Y -> G
+        [0, 255, 125], [0, 255, 150], [0, 255, 175], [0, 255, 200], [0, 255, 225],
+        [0, 255, 255], [0, 225, 255], [0, 200, 255], [0, 175, 255], [0, 150, 255],  # G -> B
+        [0, 125, 255], [0, 100, 255], [0, 75, 255], [0, 50, 255], [0, 25, 255],
+        [0, 0, 255], [25, 0, 255], [50, 0, 255], [75, 0, 255], [100, 0, 255],   # B transition
+        [125, 0, 255], [150, 0, 255], [175, 0, 255], [200, 0, 255], [225, 0, 255],
+        [255, 0, 255], [255, 0, 225], [255, 0, 200], [255, 0, 175], [255, 0, 150] #V transition
+    ]
+
+    num_colors_needed = len(allGlyphData[0]) #aka # of wordlists
+    num_colors_availible = len(roygbiv_gradient)
+
+    indices_ish = evenlySpacedAngles(num_colors_needed,num_colors_availible)
+
+    indices = []
+    for i in indices_ish:
+        indices.append(int(i))
+    
+    colors = []
+    for index in indices:
+        colors.append(roygbiv_gradient[index])
+    
+    return colors
+
+
 def constructBasicGlyphs(allGlyphData): 
+
+    
+
     cwd = os.getcwd()
     
     core_glyph_csv_path = os.path.join(cwd,"resources","glyph_header.csv")
@@ -151,6 +194,8 @@ def constructBasicGlyphs(allGlyphData):
     num_rings = len(allGlyphData[0]) #check len of a single glyph list. for each index in the list we'll make a ring
     ring_angles = evenlySpacedAngles(num_rings)
     glyphLocations = generate_centered_grid(len(allGlyphData),step=10) #generate (x,y) coords for each root glyph
+
+    colors = chooseBasicColors(allGlyphData)
 
     node_id_counter = 100  #node ids start at 60 and should increment by 1 for each element
     for i in range(0,len(allGlyphData)): #append a glyph for each list in allglyphdata
@@ -189,13 +234,19 @@ def constructBasicGlyphs(allGlyphData):
             working_row.loc[working_glyph.index[0],'parent_id'] = node_id_layer2_toroid
             
             #add location of the level 2 toroid on level 1 toroid
+            working_row.loc[working_row.index[0],'translate_x'] = None
+            working_row.loc[working_row.index[0],'translate_x'].astype(float)
             working_row.loc[working_row.index[0],'translate_x'] = ring_angles[j]
             working_row.loc[working_row.index[0],'translate_z'] = 120
 
             #scaling toroid in x, y and z directions based on data within allGlyphData
             working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = None #[i][j] is the i'th glyph in list, and j'th toroid's scale factor
             working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]].astype('float')
+            print(allGlyphData[i][j])
             working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = allGlyphData[i][j]
+
+            #adding color to ring
+            working_row.loc[working_row.index[0],["color_r","color_g","color_b"]] = colors[j]
 
             #appending working_row to working_glyph
             working_glyph = pd.concat([working_glyph,working_row])
