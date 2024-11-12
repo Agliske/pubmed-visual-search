@@ -1,0 +1,8 @@
+install.txt 2024-02-10
+
+Generally you can just run the app without any install.
+
+However, some users get an error on startup of a missing DLL.
+
+In which case, install: vcredist_2013_x86.exe
+

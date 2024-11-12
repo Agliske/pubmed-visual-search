@@ -97,7 +97,7 @@ def generateGlyphInput(articleData, wordlists):
     #END FOR each entry in articleData list of dict
 
 
-    scaler = MinMaxScaler(feature_range=(0,2))
+    scaler = MinMaxScaler(feature_range=(0.2,2.5))
     scaler.fit(allGlyphData)
 
     scaledAllGlyphData = scaler.transform(allGlyphData)
@@ -175,8 +175,25 @@ def chooseBasicColors(allGlyphData):
     
     return colors
 
+def generateTitleURLTag(singleArticleData):
+    """
+    generateTitleURLTag _summary_
 
-def constructBasicGlyphs(allGlyphData): 
+    Args:
+        singleArticleData (dict): the dictionary contained in a single list entry of articleData. Dict includes article content and metadata
+
+    Returns:
+        tag_string_format(str): string in html format that includes the display tag and url to original article.
+    """
+    
+    title = singleArticleData["title"]
+    url = singleArticleData["url"]
+
+    html_string = '<a href="' + url + '">' + title + '<a>'
+
+    return html_string
+
+def constructBasicGlyphs(allGlyphData,articleData): 
 
     
 
@@ -185,11 +202,12 @@ def constructBasicGlyphs(allGlyphData):
     core_glyph_csv_path = os.path.join(cwd,"resources","glyph_header.csv")
     working_glyph_row_path = os.path.join(cwd,"resources","glyph_layer_2_model_ring.csv")
     first_two_element_of_glyph_path = os.path.join(cwd,"resources","glyph_root_and_layer_1.csv")
-    
+    tag_file_path = os.path.join(cwd,"resources","tag_file_header.csv")
 
 
     antzfile = pd.read_csv(core_glyph_csv_path)
-    # print(antzfile)
+    tagfile = pd.read_csv(tag_file_path)
+    
 
     num_rings = len(allGlyphData[0]) #check len of a single glyph list. for each index in the list we'll make a ring
     ring_angles = evenlySpacedAngles(num_rings)
@@ -202,14 +220,26 @@ def constructBasicGlyphs(allGlyphData):
 
         #start by reading the model structure for root and layer 1 toroid
         working_glyph = pd.read_csv(first_two_element_of_glyph_path)
+
+        #initialize tag header file
+        working_root_tags = pd.read_csv(tag_file_path)
         
-        #update the node_id and parent_id for node and toroid
+        #update the node_id, parent_id, and record_id (for tag assosciation) for root node
         node_id_counter = node_id_counter + 1
-        working_glyph.loc[working_glyph.index[0],['np_node_id','np_data_id']] = node_id_counter
+        working_glyph.loc[working_glyph.index[0],['np_node_id','np_data_id','record_id']] = node_id_counter
         working_glyph.loc[working_glyph.index[0],'parent_id'] = 0 #the parent id for the root is always 0
         
+        #building root node tags. Display the title of the article, and embed the article url to be interacted with
+        working_glyph.loc[working_glyph.index[0],'tag_mode'] = 65536033 #encoded int describes fontsize, color, etc of tag
+        working_root_tags.loc[working_root_tags.index[0],'np_tag_id'] = node_id_counter
+        working_root_tags.loc[working_root_tags.index[0],'record_id'] = node_id_counter #associates this tag with the node_id of the correct element
+        working_root_tags.loc[working_root_tags.index[0],'title'] = generateTitleURLTag(articleData[i])
+        
+        tagfile = pd.concat([tagfile,working_root_tags])
+
+        #update the node_id, parent_id, of toroid
         node_id_counter = node_id_counter + 1
-        working_glyph.loc[working_glyph.index[1],['np_node_id','np_data_id']] = node_id_counter
+        working_glyph.loc[working_glyph.index[1],['np_node_id','np_data_id','record_id']] = node_id_counter
         working_glyph.loc[working_glyph.index[1],'parent_id'] = node_id_counter - 1 #parent id for layer 1 is root id. aka current id - 1
         node_id_layer2_toroid = node_id_counter #saving node id of layer 1 toroid to access in next for loop
         
@@ -227,10 +257,10 @@ def constructBasicGlyphs(allGlyphData):
         
         for j in range(0,num_rings): #construct a ring in our glyph for each element in scaling data
             
-            #add node_id and parent_id to the working row
+            #add node_id, parent_id, and tag id to the working row
             working_row = pd.read_csv(working_glyph_row_path)
             node_id_counter = node_id_counter + 1
-            working_row.loc[working_row.index[0],['np_node_id','np_data_id']] = node_id_counter
+            working_row.loc[working_row.index[0],['np_node_id','np_data_id','record_id']] = node_id_counter
             working_row.loc[working_glyph.index[0],'parent_id'] = node_id_layer2_toroid
             
             #add location of the level 2 toroid on level 1 toroid
@@ -242,7 +272,6 @@ def constructBasicGlyphs(allGlyphData):
             #scaling toroid in x, y and z directions based on data within allGlyphData
             working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = None #[i][j] is the i'th glyph in list, and j'th toroid's scale factor
             working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]].astype('float')
-            print(allGlyphData[i][j])
             working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = allGlyphData[i][j]
 
             #adding color to ring
@@ -256,8 +285,9 @@ def constructBasicGlyphs(allGlyphData):
     
         #appending working_glyph to antzfile
         antzfile = pd.concat([antzfile,working_glyph])
-    
-    return antzfile
+
+        
+    return antzfile,tagfile
 
 
 # print(evenlySpacedAngles(4))
@@ -276,7 +306,12 @@ def constructBasicGlyphs(allGlyphData):
 
 # antzfile.to_csv(r"C:\Users\aglis\Documents\Python_Projects\DaveArticleScraper\output\antzfile.csv",index=False,encoding="utf-8")
 
-# articleData = [{"content":"erin is very cool erin's slytherin erin I hate dictionaries biological chemistry blood robotics pain"}]
+# singleArticleData = [{"content":"erin is very cool erin's slytherin erin I hate dictionaries biological chemistry blood robotics pain",
+#                "title":"how is erin so cool",
+#                "url":"https://gaiaviz.com"}]
+
+# tag = generateTitleURLTag(singleArticleData[0])
+# print(tag)
 # wordlists = [['erin','biology','text'],['james','ai','robot']]
 
 # allglyphdata = generateGlyphInput(articleData=articleData,wordlists=wordlists)

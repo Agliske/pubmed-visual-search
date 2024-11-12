@@ -1,0 +1,40 @@
+2024-03-09
+
+GaiaViz Remote v1 provides an easy and fun way to explore the new spiral topo
+using a mobile device as a remote control over your local network.
+
+Step 1: Get the IP address of your computer, either:
+  - Run 'ipconfig' from the OS command prompt.
+  - Start -> Settings -> Network & Internet -> Status -> Properties
+    (...scroll down to see the IPv4 address).
+
+Step 2: Set up GaiaViz Remote on your phone/tablet:
+  - Install TouchOSC on your device:
+      https://hexler.net/touchosc/#get
+  - From your email (on the device) open the attachment (choose TouchOSC):
+      GaiaViz-RemoteV1.tosc
+  - Slide the top menubar (from right to left) to find the link icon.
+    - Enable OSC -> Connexion 1 (UDP) and set:
+        - Port: 8000
+        - IP: your computer's IPv4 address
+  - Press the play icon in the top menubar to start sending OSC commands.
+
+Step 3: Set rx_port to 8000 in the GaiaViz global table:
+  - './User/_Global_/csv/np_globals.csv' 
+    - (row) 18,"np_osc",1,"rx_port","i",8000,"","","0"
+
+Step 4: Run GaiaViz and press 1 to load sample spirals or 4 key for ImageViz.
+
+-----
+Tips:
+
+On app launch, if Windows Defender Firewall pops up:
+  - Check both boxes (Private & Public networks...)
+  - Click [Allow access]
+
+The GaiaViz 'rx_port' is set in 'Users/_Global_/csv/np_globals.csv', which
+can be changed (or set to 0) to run concurrent copies of the app.
+
+You can see the raw OSC commands in the GaiaViz system console window.
+If not, Hexler support docs may help:
+https://hexler.net/touchosc/manual/getting-started-osc
