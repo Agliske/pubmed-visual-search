@@ -233,7 +233,7 @@ def constructBasicGlyphs(allGlyphData,articleData):
         working_glyph.loc[working_glyph.index[0],'parent_id'] = 0 #the parent id for the root is always 0
         
         #building root node tags. Display the title of the article, and embed the article url to be interacted with
-        working_glyph.loc[working_glyph.index[0],'tag_mode'] = 65536033 #encoded int describes fontsize, color, etc of tag
+        working_glyph.loc[working_glyph.index[0],'tag_mode'] = 0 #encoded int describes fontsize, color, etc of tag 65536033
         working_root_tags.loc[working_root_tags.index[0],'np_tag_id'] = node_id_counter
         working_root_tags.loc[working_root_tags.index[0],'record_id'] = node_id_counter #associates this tag with the node_id of the correct element
         working_root_tags.loc[working_root_tags.index[0],'title'] = None
