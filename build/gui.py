@@ -58,6 +58,7 @@ custom_url_searchlist = None
 final_wordlists = None
 final_articleData = None
 num_results_requested = 200
+geometrySelectionKey = "Toroid"
 
 ############################################################################################################
 # Definitions
@@ -218,10 +219,10 @@ def parse_wordlist_and_search():
 
 def construct_viz_data():
     
-     
+    final_wordlists = wordlists_from_folder(current_wordlist_folder)
 
     final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists)
-    antzfile,tagfile = constructBasicGlyphs(final_allGlyphData,final_articleData)
+    antzfile,tagfile = constructBasicGlyphs(final_allGlyphData,final_articleData,geometrySelectionKey)
 
     #create a new directory each time the button is pressed, storing the new viz
     current_date = str(datetime.datetime.now().strftime('%Y-%m-%d'))
@@ -280,6 +281,12 @@ def open_in_antz():
     # except:
     #     subprocess.Popen(bat_file_path)
     #     print('operation on non-windows OS not yet supported')
+
+def change_glyph_geo_selection(event):
+    global geometrySelectionKey
+
+    geometrySelectionKey = geometryDropdown.get()
+    print("Glyph geometry changed to", geometrySelectionKey)
 
 window = Tk()
 
@@ -363,7 +370,6 @@ canvas.create_rectangle(
 
 #the upload url searchlist text editor
 url_searchlist_textbox = tk.Entry(window)
-
 url_searchlist_textbox.place(x=341+90,y=107,width=148,height=26) #x+30
 
 #the requested results bar
@@ -379,6 +385,14 @@ wordlistsScrollable.place(x=72,y=192,width=262,height=168)
 terminalScrollable = scrolledtext.ScrolledText(window, wrap = tk.WORD)
 terminalScrollable.place(x=526,y=390,width=320,height=200)
 sys.stdout = RedirectText(terminalScrollable)
+
+#the select geometry choice dropdown (combobox)
+
+geometryDropdown = ttk.Combobox(values = ["Sphere","Toroid","Cube","Octahedron"]) #plan to add cylinder
+geometryDropdown.place(x=21, y=400, height=26, width=100)
+geometryDropdown.bind("<<ComboboxSelected>>", change_glyph_geo_selection)
+geometryDropdown.insert(0,'Toroid')
+
 
 button_image_1 = PhotoImage(
     file=relative_to_assets("button_1.png"))

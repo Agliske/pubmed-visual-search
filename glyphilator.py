@@ -195,9 +195,12 @@ def generateTitleURLTag(singleArticleData):
 
     return html_string
 
-def constructBasicGlyphs(allGlyphData,articleData): 
+def constructBasicGlyphs(allGlyphData,articleData,geometrySelectionKey = "Toroid"): 
 
-    
+    geometrySelectionDict = {"Toroid":7,
+                             "Sphere":3,
+                             "Cube":1,
+                             "Octahedron":11}
 
     cwd = os.getcwd()
     
@@ -281,6 +284,9 @@ def constructBasicGlyphs(allGlyphData,articleData):
 
             #adding color to ring
             working_row.loc[working_row.index[0],["color_r","color_g","color_b"]] = colors[j]
+
+            #changing data glyph element to be the user-defined geometry
+            working_row.loc[working_row.index[0],'np_geometry_id'] = geometrySelectionDict[geometrySelectionKey]
 
             #appending working_row to working_glyph
             working_glyph = pd.concat([working_glyph,working_row])
