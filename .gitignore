@@ -1,3 +1,6 @@
 auth/*
 examples/*
 .venv/*
+gui.build/*
+gui.dist/*
+antz/*

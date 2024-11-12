@@ -93,7 +93,7 @@ def generateGlyphInput(articleData, wordlists):
         #END FOR wordlist in wordlists
 
         allGlyphData.append(glyph_data_counts)  #appending the glyph list to the antzfile list
-
+        print("Abstract parsed",i+1,"/",len(articleData))
     #END FOR each entry in articleData list of dict
 
 
@@ -116,7 +116,7 @@ def generate_centered_grid(N, step=1): # N: integer number of points we want gen
     
     # Generate coordinates symmetrically around (0,0)
     for i in range(0,grid_size + 1):
-        for j in range(0,grid_size):
+        for j in range(0,grid_size + 1):
             x = (i * step) - offset * step
             y = (j * step) - offset * step
             coordinates.append((x, y))
@@ -187,6 +187,8 @@ def generateTitleURLTag(singleArticleData):
     """
     
     title = singleArticleData["title"]
+    if title == None:
+        title = "No Title Parsed"
     url = singleArticleData["url"]
 
     html_string = '<a href="' + url + '">' + title + '<a>'
@@ -212,6 +214,7 @@ def constructBasicGlyphs(allGlyphData,articleData):
     num_rings = len(allGlyphData[0]) #check len of a single glyph list. for each index in the list we'll make a ring
     ring_angles = evenlySpacedAngles(num_rings)
     glyphLocations = generate_centered_grid(len(allGlyphData),step=10) #generate (x,y) coords for each root glyph
+    print("len glyphLocations = ", len(glyphLocations))
 
     colors = chooseBasicColors(allGlyphData)
 
@@ -233,6 +236,8 @@ def constructBasicGlyphs(allGlyphData,articleData):
         working_glyph.loc[working_glyph.index[0],'tag_mode'] = 65536033 #encoded int describes fontsize, color, etc of tag
         working_root_tags.loc[working_root_tags.index[0],'np_tag_id'] = node_id_counter
         working_root_tags.loc[working_root_tags.index[0],'record_id'] = node_id_counter #associates this tag with the node_id of the correct element
+        working_root_tags.loc[working_root_tags.index[0],'title'] = None
+        working_root_tags.loc[working_root_tags.index[0],'title'].astype('str')
         working_root_tags.loc[working_root_tags.index[0],'title'] = generateTitleURLTag(articleData[i])
         
         tagfile = pd.concat([tagfile,working_root_tags])
@@ -250,7 +255,7 @@ def constructBasicGlyphs(allGlyphData,articleData):
         working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = glyphLocations[i][0] #selecting rows where parent_id ==0 (root glyph element), and the translate_x column, and writing the corresponding value of glyphLocations,
 
         working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] =None
-        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'].astype(float)
+        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'].astype('float')
         working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = glyphLocations[i][1] #so we add the x,y coord of where we want the glyph
     
         
@@ -285,33 +290,8 @@ def constructBasicGlyphs(allGlyphData,articleData):
     
         #appending working_glyph to antzfile
         antzfile = pd.concat([antzfile,working_glyph])
-
+        print("Constructed Glyph ", i+1,"/",len(allGlyphData))
         
     return antzfile,tagfile
 
 
-# print(evenlySpacedAngles(4))
-
-# articleData = [{"content" : "hello"},{"content":"the thing is actually pie"}]
-
-# print(type(articleData[1]))
-# print(type(articleData[1]["content"]))
-
-# wordlists_path = os.path.join(cwd,"wordlists")
-# wordlists = wordlists_from_folder(wordlists_path)
-# print(wordlists_from_folder(wordlists_path))
-# allglyphdata = generateGlyphInput(articleData, wordlists)
-# print(allglyphdata)
-# antzfile = constructBasicGlyphs(allglyphdata)
-
-# antzfile.to_csv(r"C:\Users\aglis\Documents\Python_Projects\DaveArticleScraper\output\antzfile.csv",index=False,encoding="utf-8")
-
-# singleArticleData = [{"content":"erin is very cool erin's slytherin erin I hate dictionaries biological chemistry blood robotics pain",
-#                "title":"how is erin so cool",
-#                "url":"https://gaiaviz.com"}]
-
-# tag = generateTitleURLTag(singleArticleData[0])
-# print(tag)
-# wordlists = [['erin','biology','text'],['james','ai','robot']]
-
-# allglyphdata = generateGlyphInput(articleData=articleData,wordlists=wordlists)

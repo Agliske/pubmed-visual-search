@@ -3,28 +3,91 @@
 # https://github.com/ParthJadhav/Tkinter-Designer
 
 
-from pathlib import Path
-# from PIL import ImageTk,Image
-# from tkinter import *
-# Explicit imports to satisfy Flake8
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
+import pathlib
+import tkinter as tk
+from tkinter import INSERT
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, scrolledtext, ttk, filedialog
+import os
+import sys
+import shutil
+import urllib.parse
+import threading
+import datetime
+import subprocess
+
+cwd = os.getcwd()
+
+DaveArticleScraperDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+if DaveArticleScraperDir != r"C:\Users\aglis\Documents\Python_Projects\DaveArticleScraper":
+    print('rerouted DaveArticleScraperDir')
+    DaveArticleScraperDir = cwd
+
+sys.path.append(DaveArticleScraperDir)
+
+from glyphilator import wordlists_from_folder,generateGlyphInput,constructBasicGlyphs,wordlist_from_txtFile
+from pubmedFetcher import pubmedResults
+from paragraphParser import articleParse
 
 
-OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"C:\Users\aglis\Documents\Python_Projects\PythonGuiTest\DaveTest\build\assets\frame0")
+############################################################################################################
+#GLOBAL VARIABLES
+############################################################################################################
 
-last_button_clicked = None
+OUTPUT_PATH = pathlib.Path(__file__).parent
+ASSETS_PATH = OUTPUT_PATH / os.path.join(cwd, 'build', "assets" ,"frame0")
 
-def relative_to_assets(path: str) -> Path:
-    return ASSETS_PATH / Path(path)
+
+wordlist_paths = {
+    '.!button': os.path.join(DaveArticleScraperDir,"wordlists","group_1"),
+    '.!button2': os.path.join(DaveArticleScraperDir,"wordlists","group_2"),
+    '.!button3': os.path.join(DaveArticleScraperDir,"wordlists","group_3"),
+    '.!button4': os.path.join(DaveArticleScraperDir,"wordlists","group_4"),
+    '.!button5': os.path.join(DaveArticleScraperDir,"wordlists","group_5"),
+    '.!button6': os.path.join(DaveArticleScraperDir,"wordlists","group_6"),
+    '.!button7': os.path.join(DaveArticleScraperDir,"wordlists","group_7")
+
+}
+most_recent_wordlist_used = None
+
+
+current_wordlist_folder = None
+last_button_clicked = None #{'button': None}
+pubmed_search_url = None
+custom_url_searchlist = None
+final_wordlists = None
+final_articleData = None
+num_results_requested = 200
+
+############################################################################################################
+# Definitions
+############################################################################################################
+class RedirectText:
+    def __init__(self, widget):
+        self.widget = widget
+
+    def write(self, string):
+        # Write to the ScrolledText widget
+        self.widget.insert(tk.END, string)
+        self.widget.yview(tk.END)  # Auto-scroll to the bottom
+        
+        # Also write to the terminal
+        sys.__stdout__.write(string)  # This sends the output to the terminal
+
+    def flush(self):
+        # Flush is required for compatibility
+        pass
+
+def relative_to_assets(path: str) -> pathlib.Path:
+    return ASSETS_PATH / pathlib.Path(path)
 
 def button_click(button, button_image, button_selected_image):
     global last_button_clicked
     
     # Reset previous button if one was clicked before
-    if last_button_clicked:
+    if last_button_clicked != None:
         last_button_clicked['button'].config(image=last_button_clicked['image'])
-        print('we returned old button to normal')
+        
     
     # Update current button to highlighted state
     button.config(image=button_selected_image)
@@ -32,9 +95,195 @@ def button_click(button, button_image, button_selected_image):
     
     return None
 
+def list_txt_files_in_folder(filepath):
+    files = os.listdir(filepath)
+    
+
+    list_txt_filepaths = []
+    for file in files:
+        if file.endswith('.txt'):
+            list_txt_filepaths.append(filepath + r"\\" + file)
+    
+    listNames = []
+    for path in list_txt_filepaths:
+        listNames.append(os.path.basename(path))
+
+    str_listNames = "\n".join(listNames)
+    
+    return str_listNames
+
+def display_current_wordlist():
+     
+    global current_wordlist_folder
+
+    #first clear scrollable text window
+    wordlistsScrollable.delete("1.0", tk.END)
+
+    if last_button_clicked == None:
+        return
+    
+
+    key = str(last_button_clicked["button"])
+
+    current_wordlist_folder = wordlist_paths[key]
+    stringTxtFiles = list_txt_files_in_folder(current_wordlist_folder)
+
+    wordlistsScrollable.insert(tk.INSERT,stringTxtFiles)
+
+def upload_to_group():
+    global upload_filepath
+
+    #asking user for filepaths to the files they want to upload
+    upload_filepaths = tk.filedialog.askopenfilenames()
+    
+    #copying each uploaded file into current group directory
+    for file in upload_filepaths:
+        shutil.copy(file,current_wordlist_folder)
+
+    #updating the group to accurately describe updated wordlists.
+    display_current_wordlist()
+
+def delete_from_group():
+    to_delete_filepaths = filedialog.askopenfilenames(initialdir=current_wordlist_folder, title="Select file(s) to delete from group")
+    for file in to_delete_filepaths:
+        os.remove(file)
+    display_current_wordlist()
+
+def upload_url_list():
+    global custom_url_searchlist
+    global pubmed_search_url
+    
+    #generating custom url searchlist, find path, parse the txt, and assign to custom_url_searchlist
+    url_list_path = filedialog.askopenfilename()
+    custom_url_searchlist = wordlist_from_txtFile(url_list_path)
+    url_searchlist_textbox.config(state='normal')
+    url_searchlist_textbox.delete(0,tk.END)
+    url_searchlist_textbox.insert(tk.INSERT,os.path.basename(url_list_path))
+    url_searchlist_textbox.config(state='readonly')
+    
+    #global search string # gotta delete any data that may be in the manual searchbar
+    entry_1.delete(0,tk.END)
+    pubmed_search_url = None#delete the url that was generated as part of confirm_pubmed_search as well
+
+def confirm_pubmed_search():
+    global custom_url_searchlist #gptta delete any data relevant to custom URL searchlisting
+    global pubmed_search_url
+    global num_results_requested
+
+    
+    num_results_requested = int(requested_results_text.get())
+    search_string = entry_1.get()
+    
+    #deleting data related to custom URL list searching. Cant search both ways! ....YET
+    custom_url_searchlist = None
+    url_searchlist_textbox.config(state='normal')
+    url_searchlist_textbox.delete(0,tk.END)
+    url_searchlist_textbox.config(state='readonly')
+
+    #generating pubmed url
+    search_words = search_string.split()
+    
+    
+    url_search_words = []
+    for word in search_words:
+        url_search_words.append(urllib.parse.quote(word))
+
+    start_url = "https://pubmed.ncbi.nlm.nih.gov/?term="    
+    middle_url = '+'.join(url_search_words)
+    end_url = "&size=200"
+
+    pubmed_search_url = start_url + middle_url + end_url
+    
+def parse_wordlist_and_search():
+
+    global final_wordlists
+    global final_articleData
+    global most_recent_wordlist_used
+
+    most_recent_wordlist_used = current_wordlist_folder
+
+    
+    final_wordlists = wordlists_from_folder(current_wordlist_folder)
+
+    if pubmed_search_url != None:
+        final_articleData = pubmedResults(pubmed_search_url,num_results_requested=num_results_requested)
+    if custom_url_searchlist != None:
+        final_articleData = []
+        for url in custom_url_searchlist:
+            urlData = articleParse(url)
+            final_articleData.append(urlData)
+
+    # else:
+    #     print('This wordlist has already been parsed')
+
+def construct_viz_data():
+    
+     
+
+    final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists)
+    antzfile,tagfile = constructBasicGlyphs(final_allGlyphData,final_articleData)
+
+    #create a new directory each time the button is pressed, storing the new viz
+    current_date = str(datetime.datetime.now().strftime('%Y-%m-%d'))
+    
+    # midnight = datetime.datetime.combine(datetime.datetime.today(), datetime.datetime.min.time())
+    # current_time = str(int((datetime.datetime.now() - midnight).total_seconds()))
+
+    current_time = datetime.datetime.now().strftime('%H%M%S')
+    
+    date_directory_path = os.path.join(cwd,'antz','gaia_2024-07-24_app_v2','User','Prototypes', current_date)
+   
+     #making the date directory in antz/user/prototypes
+    try:
+        os.mkdir(date_directory_path)
+    except OSError:
+        pass
+    
+    time_directory_path = os.path.join(date_directory_path,current_time)
+
+
+    os.mkdir(time_directory_path)
+    directory1 = pathlib.Path(os.path.join(cwd,"antz","gaia_2024-07-24_app_v2", "User", "Prototypes", "0_DO_NOT_DELETE", "articleScraperOutput"))
+
+    for file in directory1.rglob("*"):
+
+        destination = time_directory_path / file.relative_to(directory1)
+
+        if file.is_file():
+            # Ensure parent directory exists in destination, then copy the file
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(file, destination)
+        elif file.is_dir():
+            # Ensure the directory exists in the destination
+            destination.mkdir(parents=True, exist_ok=True)
+
+    print('replacing antz and tag file')
+    #replacing articleScraperOutput_np_node, and articleScraperOutput_np_tag with our newly calculated versions
+    antzfile.to_csv(os.path.join(time_directory_path,'csv',"articleScraperOutput_np_node.csv"),index=False,encoding="utf-8")
+    tagfile.to_csv(os.path.join(time_directory_path,'csv',"articleScraperOutput_np_tag.csv"),index=False,encoding="utf-8")
+
+def open_in_antz():
+
+    all_date_dirs = os.listdir(os.path.join(cwd,'antz','gaia_2024-07-24_app_v2','User','Prototypes'))
+    # print(all_date_dirs)
+
+    most_recent_date = all_date_dirs[-1]
+    all_time_dirs = os.listdir(os.path.join(cwd,'antz','gaia_2024-07-24_app_v2','User','Prototypes',most_recent_date))
+    
+    most_recent_time = all_time_dirs[-1]
+
+    bat_file_path = os.path.join(cwd,'antz','gaia_2024-07-24_app_v2','User','Prototypes',most_recent_date,most_recent_time,'articleScraperOutput_npe.bat')
+    # print(bat_file_path)
+    subprocess.Popen(bat_file_path,shell=True,cwd=pathlib.Path(bat_file_path).parent)
+    # try:
+    #     os.startfile(bat_file_path)
+    # except:
+    #     subprocess.Popen(bat_file_path)
+    #     print('operation on non-windows OS not yet supported')
+
 window = Tk()
 
-window.geometry("853x455")
+window.geometry("853x655") #+200 pixels in y dir
 window.configure(bg = "#1C375E")
 
 
@@ -65,17 +314,9 @@ entry_1 = Entry(
 entry_1.place(
     x=21.0,
     y=107.0,
-    width=278.0,
+    width=228.0,
     height=24.0
 )
-
-canvas.create_rectangle(
-    341.0,
-    107.0,
-    489.0,
-    133.0,
-    fill="#D9D9D9",
-    outline="")
 
 canvas.create_text(
     21.0,
@@ -85,9 +326,17 @@ canvas.create_text(
     fill="#FFFFFF",
     font=("Inter", 20 * -1)
 )
+canvas.create_text(
+    225,
+    90.0,
+    anchor="nw",
+    text="(num results requested)",
+    fill="#FFFFFF",
+    font=("Inter", 10 * -1)
+)
 
 canvas.create_text(
-    341.0,
+    341.0+90,
     83.0,
     anchor="nw",
     text="Upload Custom URL List",
@@ -112,13 +361,24 @@ canvas.create_rectangle(
     fill="#5DA2BE",
     outline="")
 
-canvas.create_rectangle(
-    72.0,
-    192.0,
-    334.0,
-    360.0,
-    fill="#D9D9D9",
-    outline="")
+#the upload url searchlist text editor
+url_searchlist_textbox = tk.Entry(window)
+
+url_searchlist_textbox.place(x=341+90,y=107,width=148,height=26) #x+30
+
+#the requested results bar
+requested_results_text = tk.Entry(window)
+requested_results_text.place(x=265 , y=107, width=50, height=26)
+requested_results_text.insert(0,'200')
+
+#The Wordlists.txt viewer 
+wordlistsScrollable = scrolledtext.ScrolledText(window, wrap = tk.WORD)
+wordlistsScrollable.place(x=72,y=192,width=262,height=168)
+
+#writing print messages to status terminal
+terminalScrollable = scrolledtext.ScrolledText(window, wrap = tk.WORD)
+terminalScrollable.place(x=526,y=390,width=320,height=200)
+sys.stdout = RedirectText(terminalScrollable)
 
 button_image_1 = PhotoImage(
     file=relative_to_assets("button_1.png"))
@@ -128,7 +388,9 @@ button_1 = Button(
     image=button_image_1,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: (button_click(button_1,button_image_1,button_selected_image_1),Button,print("button_1 clicked")),
+    command=lambda: (button_click(button_1,button_image_1,button_selected_image_1),
+                     print("button_1 clicked"),
+                     display_current_wordlist()),
     relief="flat"
 )
 button_1.place(
@@ -142,6 +404,8 @@ button_image_hover_1 = PhotoImage(
     file=relative_to_assets("button_hover_1.png"))
 
 def button_1_hover(e):
+    if id(last_button_clicked['button']) == id(button_1):
+        return
     button_1.config(
         image=button_image_hover_1
     )
@@ -149,8 +413,7 @@ def button_1_leave(e):
     
     if id(last_button_clicked['button']) != id(button_1):
         button_1.config(image=button_image_1)
-    # button_1.config(
-    #     image=button_image_1)
+    
     
 
 button_1.bind('<Enter>', button_1_hover)
@@ -165,7 +428,10 @@ button_2 = Button(
     image=button_image_2,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: (button_click(button_2,button_image_2,button_selected_image_2),print("button_2 clicked")),
+    command=lambda: (button_click(button_2,button_image_2,button_selected_image_2),
+                     print("button_2 clicked"),
+                     display_current_wordlist()),
+                   
     relief="flat"
 )
 button_2.place(
@@ -179,6 +445,8 @@ button_image_hover_2 = PhotoImage(
     file=relative_to_assets("button_hover_2.png"))
 
 def button_2_hover(e):
+    if id(last_button_clicked['button']) == id(button_2):
+        return
     button_2.config(
         image=button_image_hover_2
     )
@@ -202,7 +470,9 @@ button_3 = Button(
     image=button_image_3,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: (button_click(button_3,button_image_3,button_selected_image_3),print("button_3 clicked")),
+    command=lambda: (button_click(button_3,button_image_3,button_selected_image_3),
+                     display_current_wordlist(),
+                     print("button_3 clicked")),
     relief="flat"
 )
 button_3.place(
@@ -216,6 +486,8 @@ button_image_hover_3 = PhotoImage(
     file=relative_to_assets("button_hover_3.png"))
 
 def button_3_hover(e):
+    if id(last_button_clicked['button']) == id(button_3):
+        return
     button_3.config(
         image=button_image_hover_3
     )
@@ -239,7 +511,9 @@ button_4 = Button(
     image=button_image_4,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: (button_click(button_4,button_image_4,button_selected_image_4),print("button_4 clicked")),
+    command=lambda: (button_click(button_4,button_image_4,button_selected_image_4),
+                     display_current_wordlist(),
+                     print("button_4 clicked")),
     relief="flat"
 )
 button_4.place(
@@ -253,6 +527,8 @@ button_image_hover_4 = PhotoImage(
     file=relative_to_assets("button_hover_4.png"))
 
 def button_4_hover(e):
+    if id(last_button_clicked['button']) == id(button_4):
+        return
     button_4.config(
         image=button_image_hover_4
     )
@@ -275,7 +551,9 @@ button_5 = Button(
     image=button_image_5,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: (button_click(button_5,button_image_5,button_selected_image_5),print("button_5 clicked")),
+    command=lambda: (button_click(button_5,button_image_5,button_selected_image_5),
+                     display_current_wordlist(),
+                     print("button_5 clicked")),
     relief="flat"
 )
 button_5.place(
@@ -289,6 +567,8 @@ button_image_hover_5 = PhotoImage(
     file=relative_to_assets("button_hover_5.png"))
 
 def button_5_hover(e):
+    if id(last_button_clicked['button']) == id(button_5):
+        return
     button_5.config(
         image=button_image_hover_5
     )
@@ -311,7 +591,9 @@ button_6 = Button(
     image=button_image_6,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: (button_click(button_6,button_image_6,button_selected_image_6),print("button_6 clicked")),
+    command=lambda: (button_click(button_6,button_image_6,button_selected_image_6),
+                     display_current_wordlist(),
+                     print("button_6 clicked")),
     relief="flat"
 )
 button_6.place(
@@ -325,6 +607,8 @@ button_image_hover_6 = PhotoImage(
     file=relative_to_assets("button_hover_6.png"))
 
 def button_6_hover(e):
+    if id(last_button_clicked['button']) == id(button_6):
+        return
     button_6.config(
         image=button_image_hover_6
     )
@@ -347,7 +631,9 @@ button_7 = Button(
     image=button_image_7,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: (button_click(button_7,button_image_7,button_selected_image_7),print("button_7 clicked")),
+    command=lambda: (button_click(button_7,button_image_7,button_selected_image_7),
+                     display_current_wordlist(),
+                     print("button_7 clicked")),
     relief="flat"
 )
 button_7.place(
@@ -361,6 +647,8 @@ button_image_hover_7 = PhotoImage(
     file=relative_to_assets("button_hover_7.png"))
 
 def button_7_hover(e):
+    if id(last_button_clicked['button']) == id(button_7):
+        return
     button_7.config(
         image=button_image_hover_7
     )
@@ -381,11 +669,13 @@ button_8 = Button(
     image=button_image_8,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_8 clicked"),
+    command=lambda: (print("button_8 clicked"),
+                     upload_url_list(),
+                     print(custom_url_searchlist)),
     relief="flat"
 )
 button_8.place(
-    x=496.0,
+    x=496.0+86,
     y=107.0,
     width=51.0,
     height=26.0
@@ -413,7 +703,8 @@ button_9 = Button(
     image=button_image_9,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_9 clicked"),
+    command=lambda: (print("button_9 clicked"),
+                     upload_to_group()),
     relief="flat"
 )
 button_9.place(
@@ -445,12 +736,14 @@ button_10 = Button(
     image=button_image_10,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_10 clicked"),
+    command=lambda: (print("button_10 clicked"),
+                     threading.Thread(target=parse_wordlist_and_search).start(),
+    ),
     relief="flat"
 )
 button_10.place(
     x=526.0,
-    y=406.0,
+    y=406.0+200,
     width=100.0,
     height=37.0
 )
@@ -477,12 +770,13 @@ button_11 = Button(
     image=button_image_11,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_11 clicked"),
+    command=lambda: (print("button_11 clicked"),
+                     threading.Thread(target=construct_viz_data).start()),
     relief="flat"
 )
 button_11.place(
     x=634.0,
-    y=406.0,
+    y=406.0+200,
     width=100.0,
     height=37.0
 )
@@ -509,12 +803,13 @@ button_12 = Button(
     image=button_image_12,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_12 clicked"),
+    command=lambda: (print("button_12 clicked"),
+                     open_in_antz()),
     relief="flat"
 )
 button_12.place(
     x=742.0,
-    y=406.0,
+    y=406.0+200,
     width=100.0,
     height=37.0
 )
@@ -535,8 +830,75 @@ button_12.bind('<Enter>', button_12_hover)
 button_12.bind('<Leave>', button_12_leave)
 
 
+# print(relative_to_assets('button_13.png'))
+button_image_13 = PhotoImage(
+    file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_13.PNG'))
+button_13 = Button(
+    image=button_image_13,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: (print("button_13 clicked"),
+                     
+                     confirm_pubmed_search()),
+                    
+    relief="flat"
+)
+button_13.place(
+    x=302,
+    y=107.0,
+    width=51.0,
+    height=26.0
+)
+
+button_image_hover_13 = PhotoImage(
+    file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_hover_13.PNG'))
+
+def button_13_hover(e):
+    button_13.config(
+        image=button_image_hover_13
+    )
+def button_13_leave(e):
+    button_13.config(
+        image=button_image_13
+    )
+
+button_13.bind('<Enter>', button_13_hover)
+button_13.bind('<Leave>', button_13_leave)
+
+button_image_14 = PhotoImage(
+    file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_14.png'))
+button_14 = Button(
+    image=button_image_14,
+    borderwidth=0,
+    highlightthickness=0,
+    command=lambda: (print("button_14 clicked"),
+                     delete_from_group()),
+    relief="flat"
+)
+button_14.place(
+    x=338.0,
+    y=334.0-28,
+    width=51.0,
+    height=26.0
+)
+
+button_image_hover_14 = PhotoImage(
+    file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_hover_14.png'))
+
+def button_14_hover(e):
+    button_14.config(
+        image=button_image_hover_14
+    )
+def button_14_leave(e):
+    button_14.config(
+        image=button_image_14
+    )
+
+button_14.bind('<Enter>', button_14_hover)
+button_14.bind('<Leave>', button_14_leave)
+
 canvas.create_text(
-    306.0,
+    306.0+65,
     107.0,
     anchor="nw",
     text="OR",
