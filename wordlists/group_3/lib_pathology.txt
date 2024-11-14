@@ -1,0 +1,343 @@
+Abscess
+Acute inflammation
+Adenocarcinoma
+Adenoma
+Adenopathy
+Adhesion
+Amyloidosis
+Anaplasia
+Anemia
+Angiogenesis
+Anisocytosis
+Apoptosis
+Atrophy
+Atypia
+Autolysis
+Autopsy
+Avascular necrosis
+Bacteremia
+Basophilia
+Benign tumor
+Bile duct carcinoma
+Biopsy
+Bone marrow biopsy
+Bronchopneumonia
+Cachexia
+Calcification
+Carcinogen
+Carcinogenesis
+Carcinoma in situ
+Carcinoma
+Caseous necrosis
+Cell differentiation
+Cerebral infarct
+Cholangitis
+Cholangiocarcinoma
+Cholecystitis
+Chondroblastoma
+Chondrosarcoma
+Chronic inflammation
+Cirrhosis
+Coagulative necrosis
+Colon carcinoma
+Colorectal cancer
+Condyloma
+Congestion
+Cystadenoma
+Cystitis
+Cytology
+Cytomegalovirus
+Cytopathic effect
+Cytoplasm
+Degeneration
+Desmoplasia
+Dysplasia
+Ectasia
+Edema
+Eosinophilia
+Ependymoma
+Epithelium
+Erythema
+Exudate
+Fat necrosis
+Fibroadenoma
+Fibrosis
+Fistula
+Gangrene
+Gastrointestinal stromal tumor
+Glioblastoma
+Glioma
+Glomerulonephritis
+Granuloma
+Hamartoma
+Hematoma
+Hemochromatosis
+Hemolysis
+Hemosiderin
+Hepatitis
+Hepatocellular carcinoma
+Hepatomegaly
+Histiocytosis
+Histology
+Hodgkin lymphoma
+Hydronephrosis
+Hyperchromasia
+Hyperemia
+Hyperplasia
+Hypertrophy
+Hypoplasia
+Immunohistochemistry
+Infarction
+Inflammation
+Intussusception
+Ischemia
+Jaundice
+Karyolysis
+Karyorrhexis
+Keloid
+Keratinization
+Keratosis
+Kidney carcinoma
+Leiomyoma
+Leiomyosarcoma
+Leukemia
+Leukocytosis
+Lipid accumulation
+Lipoma
+Liver cirrhosis
+Lung carcinoma
+Lymphadenitis
+Lymphadenopathy
+Lymphangioma
+Lymphocyte
+Lymphocytosis
+Lymphoma
+Malignant melanoma
+Malignant neoplasm
+Mast cell
+Mastitis
+Medulloblastoma
+Melanoma
+Meningioma
+Mesothelioma
+Metaplasia
+Metastasis
+Microscopy
+Mitosis
+Mucinous adenocarcinoma
+Mucosal lesion
+Mucous membrane
+Multinucleated giant cell
+Myeloblast
+Myelofibrosis
+Myeloma
+Myocardial infarction
+Necrosis
+Neoplasia
+Nephritis
+Nephroblastoma
+Nephrosclerosis
+Neuroma
+Neutropenia
+Neutrophilia
+Nodule
+Oncogenesis
+Osteoblastoma
+Osteoclastoma
+Osteoma
+Osteosarcoma
+Papilloma
+Paraneoplastic syndrome
+Parenchyma
+Pathogenesis
+Pathognomonic
+Pathology
+Pericarditis
+Perineural invasion
+Peritonitis
+Petechiae
+Phagocytosis
+Pleomorphic adenoma
+Pleomorphism
+Pleuritis
+Pneumonia
+Polymorphonuclear leukocyte
+Proliferation
+Prostatic adenocarcinoma
+Pseudomembrane
+Pseudomonas
+Pulmonary edema
+Purpura
+Pyknosis
+Pyogenic granuloma
+Regeneration
+Renal cell carcinoma
+Resection
+Rhabdomyoma
+Rhabdomyosarcoma
+Sarcoma
+Sclerosis
+Sepsis
+Serous cystadenoma
+Shock
+Signet ring cell
+Sinusitis
+Squamous cell carcinoma
+Steatosis
+Stromal reaction
+Suppuration
+Synovial sarcoma
+Thrombocytopenia
+Thrombocytosis
+Thrombosis
+Thymoma
+Thyroid carcinoma
+Transplant rejection
+Tuberculosis
+Tumor necrosis factor
+Ulceration
+Umbilicated lesion
+Urothelial carcinoma
+Varices
+Vasculitis
+Viral inclusion bodies
+Wound healing
+Zymogen
+Acetaminophen toxicity
+Actinic keratosis
+Adenopathy
+Amyloid deposition
+Angiosarcoma
+Anisocytosis
+Antibody staining
+Aortic dissection
+Aschoff body
+Astrocytosis
+Atheroma
+B-cell lymphoma
+Barrett's esophagus
+Basal cell carcinoma
+Basophilic stippling
+Benign neoplasm
+Biliary cirrhosis
+Blistering disorder
+Bronchioloalveolar carcinoma
+Capillary leak syndrome
+Cavitary lesion
+Cellular atypia
+Centrilobular necrosis
+Chronic obstructive pulmonary disease
+Cirrhotic liver
+Clubbing of fingers
+Collagen deposition
+Confluent necrosis
+Cytoplasmic vacuolization
+Degenerative disease
+Demyelination
+Dermoid cyst
+Diffuse large B-cell lymphoma
+Double-stranded breaks
+Dyskeratosis
+Dysplastic nevus
+Ectopic tissue
+Elastic fibers
+Endometrial hyperplasia
+Endometrial carcinoma
+Enteritis
+Eosinophilic granuloma
+Epidermal hyperplasia
+Epitheliod cells
+Erythematous rash
+Ewing sarcoma
+Exophytic growth
+Extramedullary hematopoiesis
+Fibrocystic disease
+Follicular hyperplasia
+Fulminant hepatitis
+Gastric carcinoma
+Giant cell tumor
+Gingival hyperplasia
+Glandular metaplasia
+Glial cells
+Glycogen storage disease
+Goblet cells
+Granulomatous inflammation
+Hairy cell leukemia
+Hamartomatous polyp
+Hemangioma
+Hemorrhagic infarct
+Hepatic fibrosis
+Hepatic steatosis
+Hepatosplenomegaly
+High-grade dysplasia
+Hodgkin disease
+Hyperkeratosis
+Hypertrophic scar
+Hypersensitivity reaction
+Immune complex deposition
+Immunofluorescence
+Interstitial fibrosis
+Intraductal carcinoma
+Intracellular accumulation
+Intramural hematoma
+Intravascular coagulation
+Iron overload
+Juxtaglomerular apparatus
+Kaposi sarcoma
+Keratin pearls
+Kidney stone
+Koilocytosis
+Kuppfer cells
+Langerhans cell histiocytosis
+Lobular hyperplasia
+Lung consolidation
+Lytic lesion
+Macrophage
+Mallory body
+Marginal zone lymphoma
+Mast cell tumor
+Medullary carcinoma
+Megaloblastosis
+Membranous nephropathy
+Micronodular cirrhosis
+Mucinous cystadenoma
+Mycobacterium tuberculosis
+Myocarditis
+Necrobiotic nodule
+Nephrolithiasis
+Nodular hyperplasia
+Oncocytic tumor
+Osteoblastic metastasis
+Papillary thyroid carcinoma
+Parathyroid adenoma
+Parathyroid hyperplasia
+Plasma cell dyscrasia
+Pleural effusion
+Poikilocytosis
+Polycystic kidney disease
+Precursor lesion
+Pulmonary fibrosis
+Pyelonephritis
+Reactive lymphoid hyperplasia
+Renal papillary necrosis
+Reticulocyte
+Rouleaux formation
+Seborrheic keratosis
+Sickle cell disease
+Small cell carcinoma
+Spindle cell tumor
+Splenomegaly
+Stratified epithelium
+Subacute inflammation
+Synovitis
+Teratoma
+Testicular seminoma
+Thrombophlebitis
+Thyroiditis
+Transitional cell carcinoma
+Tubulointerstitial nephritis
+Ulcerative colitis
+Von Willebrand factor
+Warthin tumor
+Wilms tumor
+Xanthoma

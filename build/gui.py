@@ -4,9 +4,9 @@
 
 
 import pathlib
-import tkinter as tk
+# import tkinter as tk
 from tkinter import INSERT
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, scrolledtext, ttk, filedialog
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, scrolledtext, ttk, filedialog, END, WORD
 import os
 import sys
 import shutil
@@ -58,7 +58,13 @@ custom_url_searchlist = None
 final_wordlists = None
 final_articleData = None
 num_results_requested = 200
-geometrySelectionKey = "Toroid"
+search_metadata = {
+                                            "geometrySelection": "Toroid", 
+                                            "wordlist_paths" : ["path/to/WL1.txt","path/to/WL2.txt","path/to/WL3.txt"],
+                                            "search_string": "sample string",
+                                            "num_results_requested": 200,
+                                            "scaling_range": (0.2,2.5),
+                                            "scaling_type": "minmax"}
 
 ############################################################################################################
 # Definitions
@@ -69,8 +75,8 @@ class RedirectText:
 
     def write(self, string):
         # Write to the ScrolledText widget
-        self.widget.insert(tk.END, string)
-        self.widget.yview(tk.END)  # Auto-scroll to the bottom
+        self.widget.insert(END, string)
+        self.widget.yview(END)  # Auto-scroll to the bottom
         
         # Also write to the terminal
         sys.__stdout__.write(string)  # This sends the output to the terminal
@@ -118,24 +124,36 @@ def display_current_wordlist():
     global current_wordlist_folder
 
     #first clear scrollable text window
-    wordlistsScrollable.delete("1.0", tk.END)
+    wordlistsScrollable.delete("1.0", END)
 
     if last_button_clicked == None:
         return
     
-
     key = str(last_button_clicked["button"])
 
     current_wordlist_folder = wordlist_paths[key]
     stringTxtFiles = list_txt_files_in_folder(current_wordlist_folder)
 
-    wordlistsScrollable.insert(tk.INSERT,stringTxtFiles)
+    wordlistsScrollable.insert(INSERT,stringTxtFiles)
+
+    #pre-setting recommended max scaling value
+    fileCount = len(os.listdir(current_wordlist_folder))
+
+    x = fileCount
+    scalingDict = {"Sphere":(19*x**2)/(x**3),
+                   "Cube":(19*x**2)/(x**3),
+                   "Octahedron":(19*x**2)/(x**3),
+                   "Toroid": (19*x**2)/(x**3)
+                   }
+
+    max_scale.delete(0,END)
+    max_scale.insert(0,scalingDict[geometryDropdown.get()])
 
 def upload_to_group():
     global upload_filepath
 
     #asking user for filepaths to the files they want to upload
-    upload_filepaths = tk.filedialog.askopenfilenames()
+    upload_filepaths = filedialog.askopenfilenames()
     
     #copying each uploaded file into current group directory
     for file in upload_filepaths:
@@ -153,18 +171,21 @@ def delete_from_group():
 def upload_url_list():
     global custom_url_searchlist
     global pubmed_search_url
+    global num_results_requested
     
     #generating custom url searchlist, find path, parse the txt, and assign to custom_url_searchlist
     url_list_path = filedialog.askopenfilename()
     custom_url_searchlist = wordlist_from_txtFile(url_list_path)
     url_searchlist_textbox.config(state='normal')
-    url_searchlist_textbox.delete(0,tk.END)
-    url_searchlist_textbox.insert(tk.INSERT,os.path.basename(url_list_path))
+    url_searchlist_textbox.delete(0,END)
+    # url_searchlist_textbox.insert(INSERT,os.path.basename(url_list_path))
+    url_searchlist_textbox.insert(INSERT,url_list_path)
     url_searchlist_textbox.config(state='readonly')
     
     #global search string # gotta delete any data that may be in the manual searchbar
-    entry_1.delete(0,tk.END)
-    pubmed_search_url = None#delete the url that was generated as part of confirm_pubmed_search as well
+    entry_1.delete(0,END)
+    pubmed_search_url = None #delete the url that was generated as part of confirm_pubmed_search as well
+    num_results_requested = None
 
 def confirm_pubmed_search():
     global custom_url_searchlist #gptta delete any data relevant to custom URL searchlisting
@@ -178,7 +199,7 @@ def confirm_pubmed_search():
     #deleting data related to custom URL list searching. Cant search both ways! ....YET
     custom_url_searchlist = None
     url_searchlist_textbox.config(state='normal')
-    url_searchlist_textbox.delete(0,tk.END)
+    url_searchlist_textbox.delete(0,END)
     url_searchlist_textbox.config(state='readonly')
 
     #generating pubmed url
@@ -218,11 +239,9 @@ def parse_wordlist_and_search():
     #     print('This wordlist has already been parsed')
 
 def construct_viz_data():
-    
-    final_wordlists = wordlists_from_folder(current_wordlist_folder)
+    global search_metadata
 
-    final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists)
-    antzfile,tagfile = constructBasicGlyphs(final_allGlyphData,final_articleData,geometrySelectionKey)
+    final_wordlists = wordlists_from_folder(current_wordlist_folder)
 
     #create a new directory each time the button is pressed, storing the new viz
     current_date = str(datetime.datetime.now().strftime('%Y-%m-%d'))
@@ -242,7 +261,7 @@ def construct_viz_data():
     
     time_directory_path = os.path.join(date_directory_path,current_time)
 
-
+    #making the time directory
     os.mkdir(time_directory_path)
     directory1 = pathlib.Path(os.path.join(cwd,"antz","gaia_2024-07-24_app_v2", "User", "Prototypes", "0_DO_NOT_DELETE", "articleScraperOutput"))
 
@@ -258,8 +277,34 @@ def construct_viz_data():
             # Ensure the directory exists in the destination
             destination.mkdir(parents=True, exist_ok=True)
 
-    print('replacing antz and tag file')
+    
+
+    #  collecting metadata related to search. 
+    # # Copying Wordlists into folder
+    wordlist_destination = os.path.join(time_directory_path,"search_metadata")
+    os.mkdir(wordlist_destination) 
+    for file in pathlib.Path(current_wordlist_folder).rglob("*"):
+        shutil.copy(file,wordlist_destination)
+
+    
+    wordlists = os.listdir(current_wordlist_folder) # i need to copy the paths this way because thats how i make the wordlists in glyphilator function. Dont wanna risk pathlib putting wordlists out of order
+    list_txt_filepaths = []
+    for file in wordlists:
+        if file.endswith('.txt'):
+            list_txt_filepaths.append(wordlist_destination + r"\\" + file)
+    
+    search_metadata["wordlist_paths"] = list_txt_filepaths
+    if custom_url_searchlist == None: search_metadata['search_string'] = [entry_1.get()] 
+    if custom_url_searchlist != None: search_metadata['search_string'] = ["Used URL Searchlist", url_searchlist_textbox.get()]
+    search_metadata["geometrySelection"] = geometryDropdown.get()
+    search_metadata["num_results_requested"] = num_results_requested
+    search_metadata["scaling_range"] = (float(max_scale.get())/(6),float(max_scale.get())) #min scale is 1/6 the max scale
+    print(search_metadata["scaling_range"])
+
+    print('generating antz and tag file')
     #replacing articleScraperOutput_np_node, and articleScraperOutput_np_tag with our newly calculated versions
+    final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists,search_metadata)
+    antzfile,tagfile = constructBasicGlyphs(final_allGlyphData,final_articleData,search_metadata)
     antzfile.to_csv(os.path.join(time_directory_path,'csv',"articleScraperOutput_np_node.csv"),index=False,encoding="utf-8")
     tagfile.to_csv(os.path.join(time_directory_path,'csv',"articleScraperOutput_np_tag.csv"),index=False,encoding="utf-8")
 
@@ -283,10 +328,10 @@ def open_in_antz():
     #     print('operation on non-windows OS not yet supported')
 
 def change_glyph_geo_selection(event):
-    global geometrySelectionKey
+    global search_metadata
 
-    geometrySelectionKey = geometryDropdown.get()
-    print("Glyph geometry changed to", geometrySelectionKey)
+    search_metadata["geometrySelection"] = geometryDropdown.get()
+    print("Glyph geometry changed to", search_metadata["geometrySelection"])
 
 window = Tk()
 
@@ -297,7 +342,7 @@ window.configure(bg = "#1C375E")
 canvas = Canvas(
     window,
     bg = "#1C375E",
-    height = 455,
+    height = 655,
     width = 853,
     bd = 0,
     highlightthickness = 0,
@@ -368,28 +413,38 @@ canvas.create_rectangle(
     fill="#5DA2BE",
     outline="")
 
+#the min and max scaling text boxes
+canvas.create_text(21,460, anchor="nw", text="Glyph Scaling (Min Max)", fill="#FFFFFF", font=("Inter", 15 * -1))
+min_scale = Entry(window)
+min_scale.place(x = 21, y = 480, height=26, width=35)
+min_scale.insert(0,"0.2")
+
+max_scale = Entry(window)
+max_scale.place(x = 60, y = 480, height=26, width=35)
+max_scale.insert(0,"2.5")
+
 #the upload url searchlist text editor
-url_searchlist_textbox = tk.Entry(window)
+url_searchlist_textbox = Entry(window)
 url_searchlist_textbox.place(x=341+90,y=107,width=148,height=26) #x+30
 
 #the requested results bar
-requested_results_text = tk.Entry(window)
+requested_results_text = Entry(window)
 requested_results_text.place(x=265 , y=107, width=50, height=26)
-requested_results_text.insert(0,'200')
+requested_results_text.insert(0,'200')  
 
 #The Wordlists.txt viewer 
-wordlistsScrollable = scrolledtext.ScrolledText(window, wrap = tk.WORD)
+wordlistsScrollable = scrolledtext.ScrolledText(window, wrap = WORD)
 wordlistsScrollable.place(x=72,y=192,width=262,height=168)
 
 #writing print messages to status terminal
-terminalScrollable = scrolledtext.ScrolledText(window, wrap = tk.WORD)
+terminalScrollable = scrolledtext.ScrolledText(window, wrap = WORD)
 terminalScrollable.place(x=526,y=390,width=320,height=200)
 sys.stdout = RedirectText(terminalScrollable)
 
 #the select geometry choice dropdown (combobox)
-
+canvas.create_text(21,400, anchor="nw", text="Glyph Geometry", fill="#FFFFFF", font=("Inter", 15 * -1))
 geometryDropdown = ttk.Combobox(values = ["Sphere","Toroid","Cube","Octahedron"]) #plan to add cylinder
-geometryDropdown.place(x=21, y=400, height=26, width=100)
+geometryDropdown.place(x=21, y=420, height=26, width=100)
 geometryDropdown.bind("<<ComboboxSelected>>", change_glyph_geo_selection)
 geometryDropdown.insert(0,'Toroid')
 

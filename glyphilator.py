@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np 
 import pandas as pd
 import math
 import difflib
@@ -36,15 +36,15 @@ def wordlist_from_txtFile(filepath):
     
     return lines
 
-def wordlists_from_folder(filepath):
+def wordlists_from_folder(dirpath):
     
-    files = os.listdir(filepath)
+    files = os.listdir(dirpath)
     
 
     list_txt_filepaths = []
     for file in files:
         if file.endswith('.txt'):
-            list_txt_filepaths.append(filepath + r"\\" + file)
+            list_txt_filepaths.append(dirpath + r"\\" + file)
     
     
     wordlists = []
@@ -54,13 +54,20 @@ def wordlists_from_folder(filepath):
 
     return wordlists
 
-def generateGlyphInput(articleData, wordlists):
+def generateGlyphInput(articleData, wordlists, search_metadata = {
+                                            "geometrySelection": "Toroid", 
+                                            "wordlist_paths" : ["path/to/WL1.txt","path/to/WL2.txt","path/to/WL3.txt"],
+                                            "search_string": "sample string",
+                                            "num_results_requested": 200,
+                                            "scaling_range": (0.2,2.5),
+                                            "scaling_type": "minmax"}):
     """
     generateGlyphInput _summary_
 
     Args:
         articleData (list of dict): each dict contains content and metadata, all stacked in a list of results for multiple articles
         wordlists (list of list): each element of list is one list of strings, containing search terms for a particular subject
+        search_metadata(dict): 
 
     Returns:
         (list of list): list of list containing floats, which scale each glyph element
@@ -96,9 +103,10 @@ def generateGlyphInput(articleData, wordlists):
         print("Abstract parsed",i+1,"/",len(articleData))
     #END FOR each entry in articleData list of dict
 
-
-    scaler = MinMaxScaler(feature_range=(0.2,2.5))
-    scaler.fit(allGlyphData)
+    if search_metadata["scaling_type"] == "minmax":
+        # print(search_metadata["scaling_range"])
+        scaler = MinMaxScaler(feature_range=search_metadata["scaling_range"])
+        scaler.fit(allGlyphData)
 
     scaledAllGlyphData = scaler.transform(allGlyphData)
     # print('we scaled allGlyphData')
@@ -195,8 +203,15 @@ def generateTitleURLTag(singleArticleData):
 
     return html_string
 
-def constructBasicGlyphs(allGlyphData,articleData,geometrySelectionKey = "Toroid"): 
-
+def constructBasicGlyphs(allGlyphData,articleData, search_metadata = {
+                                            "geometrySelection": "Toroid", 
+                                            "wordlist_paths" : ["path/to/WL1.txt","path/to/WL2.txt","path/to/WL3.txt"],
+                                            "search_string": "sample string",
+                                            "num_results_requested": 200,
+                                            "scaling_range": (0.2,2.5),
+                                            "scaling_type": "absolute"}): 
+    
+    
     geometrySelectionDict = {"Toroid":7,
                              "Sphere":3,
                              "Cube":1,
@@ -216,13 +231,19 @@ def constructBasicGlyphs(allGlyphData,articleData,geometrySelectionKey = "Toroid
 
     num_rings = len(allGlyphData[0]) #check len of a single glyph list. for each index in the list we'll make a ring
     ring_angles = evenlySpacedAngles(num_rings)
-    glyphLocations = generate_centered_grid(len(allGlyphData),step=10) #generate (x,y) coords for each root glyph
-    print("len glyphLocations = ", len(glyphLocations))
+    glyphSeparationDistance = 10
+    glyphLocations = generate_centered_grid(len(allGlyphData),glyphSeparationDistance) #generate (x,y) coords for each root glyph
+    
 
     colors = chooseBasicColors(allGlyphData)
 
-    node_id_counter = 100  #node ids start at 60 and should increment by 1 for each element
-    for i in range(0,len(allGlyphData)): #append a glyph for each list in allglyphdata
+    node_id_counter = 100  #node ids start at 100 and should increment by 1 for each element
+    flag_generating_key_glyph = False
+    for i in range(0,len(allGlyphData)+1): #append a glyph for each list in allglyphdata
+        
+        #generate the key glyph on the last iteration
+        if i == len(allGlyphData):
+            flag_generating_key_glyph = True
 
         #start by reading the model structure for root and layer 1 toroid
         working_glyph = pd.read_csv(first_two_element_of_glyph_path)
@@ -234,16 +255,11 @@ def constructBasicGlyphs(allGlyphData,articleData,geometrySelectionKey = "Toroid
         node_id_counter = node_id_counter + 1
         working_glyph.loc[working_glyph.index[0],['np_node_id','np_data_id','record_id']] = node_id_counter
         working_glyph.loc[working_glyph.index[0],'parent_id'] = 0 #the parent id for the root is always 0
-        
+
         #building root node tags. Display the title of the article, and embed the article url to be interacted with
         working_glyph.loc[working_glyph.index[0],'tag_mode'] = 0 #encoded int describes fontsize, color, etc of tag 65536033
         working_root_tags.loc[working_root_tags.index[0],'np_tag_id'] = node_id_counter
         working_root_tags.loc[working_root_tags.index[0],'record_id'] = node_id_counter #associates this tag with the node_id of the correct element
-        working_root_tags.loc[working_root_tags.index[0],'title'] = None
-        working_root_tags.loc[working_root_tags.index[0],'title'].astype('str')
-        working_root_tags.loc[working_root_tags.index[0],'title'] = generateTitleURLTag(articleData[i])
-        
-        tagfile = pd.concat([tagfile,working_root_tags])
 
         #update the node_id, parent_id, of toroid
         node_id_counter = node_id_counter + 1
@@ -251,18 +267,48 @@ def constructBasicGlyphs(allGlyphData,articleData,geometrySelectionKey = "Toroid
         working_glyph.loc[working_glyph.index[1],'parent_id'] = node_id_counter - 1 #parent id for layer 1 is root id. aka current id - 1
         node_id_layer2_toroid = node_id_counter #saving node id of layer 1 toroid to access in next for loop
         
+        
+        # print(flag_generating_key_glyph, "iteration = ",i)
+        if flag_generating_key_glyph != True:
+            #placing the root glyph on the x-y plane
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = None
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'].astype('float')
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = glyphLocations[i][0] #selecting rows where parent_id ==0 (root glyph element), and the translate_x column, and writing the corresponding value of glyphLocations,
 
-        #placing the root glyph on the x-y plane
-        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = None
-        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'].astype('float')
-        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = glyphLocations[i][0] #selecting rows where parent_id ==0 (root glyph element), and the translate_x column, and writing the corresponding value of glyphLocations,
-
-        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] =None
-        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'].astype('float')
-        working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = glyphLocations[i][1] #so we add the x,y coord of where we want the glyph
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] =None
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'].astype('float')
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = glyphLocations[i][1] #so we add the x,y coord of where we want the glyph
     
+            #adding text to root node tags. Display the title of the article, and embed the article url to be interacted with
+            working_root_tags.loc[working_root_tags.index[0],'title'] = None
+            working_root_tags.loc[working_root_tags.index[0],'title'].astype('str')
+            working_root_tags.loc[working_root_tags.index[0],'title'] = generateTitleURLTag(articleData[i])
+
+
+        if flag_generating_key_glyph == True:
+            
+            #calculating furthest top and right glyph
+            positive_coordinates = [coord for coord in glyphLocations if coord[0] >= 0 and coord[1] >= 0]
         
-        
+            max_x = max([coord[0] for coord in positive_coordinates])
+            max_y = max([coord[1] for coord in positive_coordinates])
+            
+           #placing the root glyph on the x-y plane
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = None
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'].astype('float')
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = max_x + 1.5 * glyphSeparationDistance #selecting rows where parent_id ==0 (root glyph element), and the translate_x column, and writing the corresponding value of glyphLocations,
+
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] =None
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'].astype('float')
+            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = max_y + 1.5 * glyphSeparationDistance #so we add the x,y coord of where we want the glyph
+
+            #adding text to root key glyph node tag.
+            working_root_tags.loc[working_root_tags.index[0],'title'] = None
+            working_root_tags.loc[working_root_tags.index[0],'title'].astype('str')
+            # working_root_tags.loc[working_root_tags.index[0],'title'] = "str that has visualization metadata"
+
+        tagfile = pd.concat([tagfile,working_root_tags])
+
         for j in range(0,num_rings): #construct a ring in our glyph for each element in scaling data
             
             #add node_id, parent_id, and tag id to the working row
@@ -277,27 +323,56 @@ def constructBasicGlyphs(allGlyphData,articleData,geometrySelectionKey = "Toroid
             working_row.loc[working_row.index[0],'translate_x'] = ring_angles[j]
             working_row.loc[working_row.index[0],'translate_z'] = 120
 
-            #scaling toroid in x, y and z directions based on data within allGlyphData
-            working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = None #[i][j] is the i'th glyph in list, and j'th toroid's scale factor
-            working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]].astype('float')
-            working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = allGlyphData[i][j]
-
+            
+            
             #adding color to ring
+           
             working_row.loc[working_row.index[0],["color_r","color_g","color_b"]] = colors[j]
+            
 
             #changing data glyph element to be the user-defined geometry
-            working_row.loc[working_row.index[0],'np_geometry_id'] = geometrySelectionDict[geometrySelectionKey]
+            working_row.loc[working_row.index[0],'np_geometry_id'] = geometrySelectionDict[search_metadata["geometrySelection"]]
+            
+            if flag_generating_key_glyph == False:
+
+                #scaling toroid in x, y and z directions based on data within allGlyphData
+                working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = None #[i][j] is the i'th glyph in list, and j'th toroid's scale factor
+                working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]].astype('float')
+                working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = allGlyphData[i][j]
+            
+            
+            if flag_generating_key_glyph == True:
+        
+                # set default scaling
+                working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = search_metadata["scaling_range"][1]
+                
+                #building key glyph layer_2 (leaf) tags. Display names of each wordlist that was used to scale that glyph element
+                working_leaf_tags = pd.read_csv(tag_file_path)
+                working_row.loc[working_row.index[0],'tag_mode'] = 0 #encoded int describes fontsize, color, etc of tag 65536033
+                working_leaf_tags.loc[working_leaf_tags.index[0],'np_tag_id'] = node_id_counter
+                working_leaf_tags.loc[working_leaf_tags.index[0],'record_id'] = node_id_counter #associates this tag with the node_id of the correct element
+                
+                tag_string = '<a href="' + search_metadata["wordlist_paths"][j] + '">' + os.path.basename(search_metadata["wordlist_paths"][j]) + '<a>'
+                
+                working_leaf_tags.loc[working_leaf_tags.index[0],'title'] = None
+                working_leaf_tags.loc[working_leaf_tags.index[0],'title'].astype('str')
+                working_leaf_tags.loc[working_leaf_tags.index[0],'title'] = tag_string
+                tagfile = pd.concat([tagfile,working_leaf_tags])
 
             #appending working_row to working_glyph
             working_glyph = pd.concat([working_glyph,working_row])
-            
 
             # END FOR
-    
+
+        
         #appending working_glyph to antzfile
         antzfile = pd.concat([antzfile,working_glyph])
         print("Constructed Glyph ", i+1,"/",len(allGlyphData))
-        
+        if flag_generating_key_glyph == True:
+            print("Key Glyph Generated in Top Right Corner")
+
+
     return antzfile,tagfile
 
 
+# glyphlocations = generate_centered_grid(50,10)
