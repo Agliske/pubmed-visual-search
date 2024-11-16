@@ -332,6 +332,15 @@ def constructBasicGlyphs(articleData, wordlists, search_metadata = {
             working_root_tags.loc[working_root_tags.index[0],'title'] = root_tag_string
 
         tagfile = pd.concat([tagfile,working_root_tags])
+        
+        #generating tags for layer 2 toroid that include the rest of the search metadata
+        layer2_toroid_tag = pd.read_csv(tag_file_path)
+        layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'tag_mode'] = 0
+        layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'np_tag_id'] = node_id_layer2_toroid
+        layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'record_id'] = node_id_layer2_toroid
+        tag_string = "results requested:" +str(search_metadata["num_results_requested"]) + "|" + "Scaling Type:" + search_metadata["scaling_type"] + "|"
+        layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'title'] = tag_string
+        tagfile = pd.concat([tagfile,layer2_toroid_tag])
 
         for j in range(0,num_rings): #construct a ring in our glyph for each element in scaling data
             
