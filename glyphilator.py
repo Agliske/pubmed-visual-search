@@ -4,6 +4,7 @@ import math
 import difflib
 import os
 from sklearn.preprocessing import MinMaxScaler
+from numpy import min, max, array
 #import spacy #for natural language processing ie. when I want to include context-aware word searching
 
 #usage order: 
@@ -102,17 +103,28 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
         allGlyphData.append(glyph_data_counts)  #appending the glyph list to the antzfile list
         print("Abstract parsed",i+1,"/",len(articleData))
     #END FOR each entry in articleData list of dict
+    word_hits = allGlyphData
+    print(word_hits)
 
     if search_metadata["scaling_type"] == "minmax":
-        # print(search_metadata["scaling_range"])
-        scaler = MinMaxScaler(feature_range=search_metadata["scaling_range"])
-        scaler.fit(allGlyphData)
 
-    scaledAllGlyphData = scaler.transform(allGlyphData)
+        # def minmax_scaling(data):
+        data_array = array(allGlyphData)
+        min_val = min(data_array)
+        max_val = max(data_array)
+        min_target = search_metadata["scaling_range"][0]
+        max_target = search_metadata["scaling_range"][1]
+        scaledAllGlyphData = min_target + (data_array - min_val) * (max_target - min_target) / (max_val - min_val)
+        scaledAllGlyphData.tolist()
+        # 
+        # scaler = MinMaxScaler(feature_range=search_metadata["scaling_range"])
+        # scaler.fit(allGlyphData)
+
+        # scaledAllGlyphData = scaler.transform(allGlyphData)
     # print('we scaled allGlyphData')
     # print(scaledAllGlyphData)
     
-    return scaledAllGlyphData
+    return scaledAllGlyphData,word_hits
 
 def generate_centered_grid(N, step=1): # N: integer number of points we want generated| step: float value of x and y distance we want our points to be spaced by
 
@@ -203,7 +215,7 @@ def generateTitleURLTag(singleArticleData):
 
     return html_string
 
-def constructBasicGlyphs(allGlyphData,articleData, search_metadata = {
+def constructBasicGlyphs(articleData, wordlists, search_metadata = {
                                             "geometrySelection": "Toroid", 
                                             "wordlist_paths" : ["path/to/WL1.txt","path/to/WL2.txt","path/to/WL3.txt"],
                                             "search_string": "sample string",
@@ -228,8 +240,12 @@ def constructBasicGlyphs(allGlyphData,articleData, search_metadata = {
     antzfile = pd.read_csv(core_glyph_csv_path)
     tagfile = pd.read_csv(tag_file_path)
     
+    #calling generateGlyphInput to get allglyphdata, the antz ring scale value, and glyphdatacounts, to get the #hits from each wordlist for each tag
+    allGlyphData,glyphDataCounts = generateGlyphInput(articleData,wordlists,search_metadata)
+    
 
     num_rings = len(allGlyphData[0]) #check len of a single glyph list. for each index in the list we'll make a ring
+    # print("num rings = ",num_rings)
     ring_angles = evenlySpacedAngles(num_rings)
     glyphSeparationDistance = 10
     glyphLocations = generate_centered_grid(len(allGlyphData),glyphSeparationDistance) #generate (x,y) coords for each root glyph
@@ -287,25 +303,33 @@ def constructBasicGlyphs(allGlyphData,articleData, search_metadata = {
 
         if flag_generating_key_glyph == True:
             
-            #calculating furthest top and right glyph
-            positive_coordinates = [coord for coord in glyphLocations if coord[0] >= 0 and coord[1] >= 0]
-        
-            max_x = max([coord[0] for coord in positive_coordinates])
-            max_y = max([coord[1] for coord in positive_coordinates])
             
-           #placing the root glyph on the x-y plane
+            
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = None
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'].astype('float')
-            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = max_x + 1.5 * glyphSeparationDistance #selecting rows where parent_id ==0 (root glyph element), and the translate_x column, and writing the corresponding value of glyphLocations,
-
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] =None
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'].astype('float')
-            working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = max_y + 1.5 * glyphSeparationDistance #so we add the x,y coord of where we want the glyph
+            #calculating furthest top and right glyph
+            
+            positive_coordinates = [coord for coord in glyphLocations if coord[0] >= 0 and coord[1] >= 0]
+            try:
+                max_x = max([coord[0] for coord in positive_coordinates])
+                max_y = max([coord[1] for coord in positive_coordinates])
+                
+                #placing the root glyph on the x-y plane               
+                working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = max_x + 1.5 * glyphSeparationDistance #selecting rows where parent_id ==0 (root glyph element), and the translate_x column, and writing the corresponding value of glyphLocations,
+                working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = max_y + 1.5 * glyphSeparationDistance #so we add the x,y coord of where we want the glyph
 
+            except:
+                working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = 21 #selecting rows where parent_id ==0 (root glyph element), and the translate_x column, and writing the corresponding value of glyphLocations,
+                working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = 35
+            
             #adding text to root key glyph node tag.
             working_root_tags.loc[working_root_tags.index[0],'title'] = None
             working_root_tags.loc[working_root_tags.index[0],'title'].astype('str')
-            # working_root_tags.loc[working_root_tags.index[0],'title'] = "str that has visualization metadata"
+            root_tag_string = '<a href="' + search_metadata["search_string"] + '">' + os.path.basename(search_metadata["search_string"]) + '<a>'
+
+            working_root_tags.loc[working_root_tags.index[0],'title'] = root_tag_string
 
         tagfile = pd.concat([tagfile,working_root_tags])
 
@@ -333,29 +357,37 @@ def constructBasicGlyphs(allGlyphData,articleData, search_metadata = {
             #changing data glyph element to be the user-defined geometry
             working_row.loc[working_row.index[0],'np_geometry_id'] = geometrySelectionDict[search_metadata["geometrySelection"]]
             
+            #building key glyph layer_2 (leaf) tags. Display names of each wordlist that was used to scale that glyph element
+            working_leaf_tags = pd.read_csv(tag_file_path)
+            working_row.loc[working_row.index[0],'tag_mode'] = 0 #encoded int describes fontsize, color, etc of tag 65536033
+            working_leaf_tags.loc[working_leaf_tags.index[0],'np_tag_id'] = node_id_counter
+            working_leaf_tags.loc[working_leaf_tags.index[0],'record_id'] = node_id_counter #associates this tag with the node_id of the correct element
+
+            working_leaf_tags.loc[working_leaf_tags.index[0],'title'] = None
+            working_leaf_tags.loc[working_leaf_tags.index[0],'title'].astype('str')
+            
             if flag_generating_key_glyph == False:
 
                 #scaling toroid in x, y and z directions based on data within allGlyphData
                 working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = None #[i][j] is the i'th glyph in list, and j'th toroid's scale factor
                 working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]].astype('float')
                 working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = allGlyphData[i][j]
-            
+
+                tag_string = glyphDataCounts[i][j]
+                working_leaf_tags.loc[working_leaf_tags.index[0],'title'] = tag_string
+                tagfile = pd.concat([tagfile,working_leaf_tags])
             
             if flag_generating_key_glyph == True:
         
-                # set default scaling
+                # set key glyph scaling to max scale
                 working_row.loc[working_row.index[0],["scale_x","scale_y","scale_z"]] = search_metadata["scaling_range"][1]
                 
-                #building key glyph layer_2 (leaf) tags. Display names of each wordlist that was used to scale that glyph element
-                working_leaf_tags = pd.read_csv(tag_file_path)
-                working_row.loc[working_row.index[0],'tag_mode'] = 0 #encoded int describes fontsize, color, etc of tag 65536033
-                working_leaf_tags.loc[working_leaf_tags.index[0],'np_tag_id'] = node_id_counter
-                working_leaf_tags.loc[working_leaf_tags.index[0],'record_id'] = node_id_counter #associates this tag with the node_id of the correct element
                 
+                
+                # print(search_metadata["wordlist_paths"][j])
                 tag_string = '<a href="' + search_metadata["wordlist_paths"][j] + '">' + os.path.basename(search_metadata["wordlist_paths"][j]) + '<a>'
                 
-                working_leaf_tags.loc[working_leaf_tags.index[0],'title'] = None
-                working_leaf_tags.loc[working_leaf_tags.index[0],'title'].astype('str')
+                
                 working_leaf_tags.loc[working_leaf_tags.index[0],'title'] = tag_string
                 tagfile = pd.concat([tagfile,working_leaf_tags])
 

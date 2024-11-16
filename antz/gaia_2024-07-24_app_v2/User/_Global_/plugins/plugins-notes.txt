@@ -1,4 +1,0 @@
-plugins-notes_2019-02-06
-
-Plugin types include binary (dll, so, dylib) and Python.
-

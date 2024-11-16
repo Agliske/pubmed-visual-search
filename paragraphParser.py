@@ -61,11 +61,14 @@ def articleParse(url, method = 0):
   
     mainTag = soup.find(["main"])
     
-
-    titleTag = mainTag.find(["h1"])
-    # titleTag = filter(tag_visible,titleTag)
-    title = titleTag.get_text()
-    articleData["title"] = title
+    try:
+        titleTag = mainTag.find(["h1"])
+        # titleTag = filter(tag_visible,titleTag)
+        title = titleTag.get_text()
+        articleData["title"] = title
+    except:
+        print("couldnt find article title at ", url)
+        articleData["title"] = "Title Not Found"
     
     
     # timeTag = soup.find(['time'])

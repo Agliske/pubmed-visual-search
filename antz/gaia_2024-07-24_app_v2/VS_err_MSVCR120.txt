@@ -1,5 +1,0 @@
-If you get a dialog error for missing 'MSVCR120.DLL', then you need to
-install 'vcredist_x86.exe' (included in the app folder).
-
-*This is the VS2013 x86 (32bit) ver of the redistributable, note that
-other versions (there are many) all have the same filename.

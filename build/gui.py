@@ -172,6 +172,7 @@ def upload_url_list():
     global custom_url_searchlist
     global pubmed_search_url
     global num_results_requested
+    global search_metadata
     
     #generating custom url searchlist, find path, parse the txt, and assign to custom_url_searchlist
     url_list_path = filedialog.askopenfilename()
@@ -187,10 +188,15 @@ def upload_url_list():
     pubmed_search_url = None #delete the url that was generated as part of confirm_pubmed_search as well
     num_results_requested = None
 
+    #uploading search_metadata["search_string"] with path of the url list
+    search_metadata["search_string"] = url_list_path
+
+
 def confirm_pubmed_search():
     global custom_url_searchlist #gptta delete any data relevant to custom URL searchlisting
     global pubmed_search_url
     global num_results_requested
+    global search_metadata
 
     
     num_results_requested = int(requested_results_text.get())
@@ -215,6 +221,9 @@ def confirm_pubmed_search():
     end_url = "&size=200"
 
     pubmed_search_url = start_url + middle_url + end_url
+
+    #updating search_metadata with the search string
+    search_metadata["search_string"] = search_string
     
 def parse_wordlist_and_search():
 
@@ -251,7 +260,7 @@ def construct_viz_data():
 
     current_time = datetime.datetime.now().strftime('%H%M%S')
     
-    date_directory_path = os.path.join(cwd,'antz','gaia_2024-07-24_app_v2','User','Prototypes', current_date)
+    date_directory_path = os.path.join(cwd,'antz','antz','User','Prototypes', current_date)
    
      #making the date directory in antz/user/prototypes
     try:
@@ -263,7 +272,7 @@ def construct_viz_data():
 
     #making the time directory
     os.mkdir(time_directory_path)
-    directory1 = pathlib.Path(os.path.join(cwd,"antz","gaia_2024-07-24_app_v2", "User", "Prototypes", "0_DO_NOT_DELETE", "articleScraperOutput"))
+    directory1 = pathlib.Path(os.path.join(cwd,"antz","antz", "User", "Prototypes", "0_DO_NOT_DELETE", "articleScraperOutput"))
 
     for file in directory1.rglob("*"):
 
@@ -286,16 +295,24 @@ def construct_viz_data():
     for file in pathlib.Path(current_wordlist_folder).rglob("*"):
         shutil.copy(file,wordlist_destination)
 
-    
+    antz_base_path = os.path.join(cwd, "antz", "antz")
+
     wordlists = os.listdir(current_wordlist_folder) # i need to copy the paths this way because thats how i make the wordlists in glyphilator function. Dont wanna risk pathlib putting wordlists out of order
     list_txt_filepaths = []
     for file in wordlists:
         if file.endswith('.txt'):
-            list_txt_filepaths.append(wordlist_destination + r"\\" + file)
+            file_abs_path = wordlist_destination + r"\\" + file
+            list_txt_filepaths.append(os.path.relpath(file_abs_path,antz_base_path))
     
+    #copying the custom url searchlist txt file into the wordlist destination folder, and setting search_metadata["search_string"] to point to the copied url
+    if custom_url_searchlist != None:
+        print("search string = ", search_metadata["search_string"])
+        shutil.copy(search_metadata["search_string"],wordlist_destination)
+        search_metadata["search_string"] = os.path.relpath(wordlist_destination + r"\\" + os.path.basename(search_metadata["search_string"]),antz_base_path)
+
     search_metadata["wordlist_paths"] = list_txt_filepaths
-    if custom_url_searchlist == None: search_metadata['search_string'] = [entry_1.get()] 
-    if custom_url_searchlist != None: search_metadata['search_string'] = ["Used URL Searchlist", url_searchlist_textbox.get()]
+    # if custom_url_searchlist == None: search_metadata['search_string'] = [entry_1.get()] #THIS INFO WAS ASSIGNED WHEN SEARCH CONFIRM BUTTON CLIckEd AND when URL SEARCHLIST UPLOADED
+    # if custom_url_searchlist != None: search_metadata['search_string'] = ["Used URL Searchlist", url_searchlist_textbox.get()]
     search_metadata["geometrySelection"] = geometryDropdown.get()
     search_metadata["num_results_requested"] = num_results_requested
     search_metadata["scaling_range"] = (float(max_scale.get())/(6),float(max_scale.get())) #min scale is 1/6 the max scale
@@ -303,22 +320,22 @@ def construct_viz_data():
 
     print('generating antz and tag file')
     #replacing articleScraperOutput_np_node, and articleScraperOutput_np_tag with our newly calculated versions
-    final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists,search_metadata)
-    antzfile,tagfile = constructBasicGlyphs(final_allGlyphData,final_articleData,search_metadata)
+    # final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists,search_metadata)
+    antzfile,tagfile = constructBasicGlyphs(final_articleData,final_wordlists,search_metadata)
     antzfile.to_csv(os.path.join(time_directory_path,'csv',"articleScraperOutput_np_node.csv"),index=False,encoding="utf-8")
     tagfile.to_csv(os.path.join(time_directory_path,'csv',"articleScraperOutput_np_tag.csv"),index=False,encoding="utf-8")
 
 def open_in_antz():
 
-    all_date_dirs = os.listdir(os.path.join(cwd,'antz','gaia_2024-07-24_app_v2','User','Prototypes'))
+    all_date_dirs = os.listdir(os.path.join(cwd,'antz','antz','User','Prototypes'))
     # print(all_date_dirs)
 
     most_recent_date = all_date_dirs[-1]
-    all_time_dirs = os.listdir(os.path.join(cwd,'antz','gaia_2024-07-24_app_v2','User','Prototypes',most_recent_date))
+    all_time_dirs = os.listdir(os.path.join(cwd,'antz','antz','User','Prototypes',most_recent_date))
     
     most_recent_time = all_time_dirs[-1]
 
-    bat_file_path = os.path.join(cwd,'antz','gaia_2024-07-24_app_v2','User','Prototypes',most_recent_date,most_recent_time,'articleScraperOutput_npe.bat')
+    bat_file_path = os.path.join(cwd,'antz','antz','User','Prototypes',most_recent_date,most_recent_time,'articleScraperOutput_npe.bat')
     # print(bat_file_path)
     subprocess.Popen(bat_file_path,shell=True,cwd=pathlib.Path(bat_file_path).parent)
     # try:
