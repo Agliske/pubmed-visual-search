@@ -25,9 +25,10 @@ if DaveArticleScraperDir != r"C:\Users\aglis\Documents\Python_Projects\DaveArtic
 
 sys.path.append(DaveArticleScraperDir)
 
-from glyphilator import wordlists_from_folder,generateGlyphInput,constructBasicGlyphs,wordlist_from_txtFile
+from glyphilator import wordlists_from_folder,constructBasicGlyphs,searchlist_from_txtFile
 from pubmedFetcher import pubmedResults
 from paragraphParser import articleParse
+from asyncPubmedFetcher import pubmedResultsAsync
 
 
 ############################################################################################################
@@ -176,7 +177,7 @@ def upload_url_list():
     
     #generating custom url searchlist, find path, parse the txt, and assign to custom_url_searchlist
     url_list_path = filedialog.askopenfilename()
-    custom_url_searchlist = wordlist_from_txtFile(url_list_path)
+    custom_url_searchlist = searchlist_from_txtFile(url_list_path)
     url_searchlist_textbox.config(state='normal')
     url_searchlist_textbox.delete(0,END)
     # url_searchlist_textbox.insert(INSERT,os.path.basename(url_list_path))
@@ -190,7 +191,6 @@ def upload_url_list():
 
     #uploading search_metadata["search_string"] with path of the url list
     search_metadata["search_string"] = url_list_path
-
 
 def confirm_pubmed_search():
     global custom_url_searchlist #gptta delete any data relevant to custom URL searchlisting
@@ -251,24 +251,25 @@ def construct_viz_data():
     global search_metadata
 
     final_wordlists = wordlists_from_folder(current_wordlist_folder)
+    
 
     #create a new directory each time the button is pressed, storing the new viz
-    current_date = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-    
+    folder_date = str(datetime.datetime.now().strftime('%Y-%m-%d'))
+    date_noDash = str(datetime.datetime.now().strftime('%Y%m%d'))
     # midnight = datetime.datetime.combine(datetime.datetime.today(), datetime.datetime.min.time())
     # current_time = str(int((datetime.datetime.now() - midnight).total_seconds()))
 
     current_time = datetime.datetime.now().strftime('%H%M%S')
     
-    date_directory_path = os.path.join(cwd,'antz','antz','User','Prototypes', current_date)
+    date_directory_path = os.path.join(cwd,'antz','antz','User','Prototypes', folder_date)
    
      #making the date directory in antz/user/prototypes
     try:
         os.mkdir(date_directory_path)
     except OSError:
         pass
-    
-    time_directory_path = os.path.join(date_directory_path,current_time)
+    time_directory_name = "proto-" + date_noDash + "T" + current_time
+    time_directory_path = os.path.join(date_directory_path,time_directory_name)
 
     #making the time directory
     os.mkdir(time_directory_path)
@@ -316,7 +317,7 @@ def construct_viz_data():
     search_metadata["geometrySelection"] = geometryDropdown.get()
     search_metadata["num_results_requested"] = num_results_requested
     search_metadata["scaling_range"] = (float(max_scale.get())/(6),float(max_scale.get())) #min scale is 1/6 the max scale
-    print(search_metadata["scaling_range"])
+    # print(search_metadata["scaling_range"])
 
     print('generating antz and tag file')
     #replacing articleScraperOutput_np_node, and articleScraperOutput_np_tag with our newly calculated versions
@@ -391,7 +392,7 @@ canvas.create_text(
     21.0,
     83.0,
     anchor="nw",
-    text="PubMed Visual Search",
+    text="Enter Search String",
     fill="#FFFFFF",
     font=("Inter", 20 * -1)
 )

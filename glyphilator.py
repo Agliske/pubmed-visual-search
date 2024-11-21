@@ -5,6 +5,7 @@ import difflib
 import os
 from sklearn.preprocessing import MinMaxScaler
 from numpy import min, max, array
+from re import compile
 #import spacy #for natural language processing ie. when I want to include context-aware word searching
 
 #usage order: 
@@ -20,6 +21,30 @@ from numpy import min, max, array
 
 cwd = os.getcwd()
 
+def searchlist_from_txtFile(filepath):
+    """_summary_
+
+    Args:
+        filepath (string): absolute filepath to your txt file
+
+    Returns:
+        lines (list of string): list containing string of each new line of the txt file
+    """
+
+    with open(filepath, "r") as file:
+        text = file.read()
+        lines = text.split("\n")
+    
+    re_pattern = compile(r"^https?://")
+    
+    filtered_lines = []
+    for line in lines:
+        if re_pattern.match(line):
+            filtered_lines.append(line)
+
+    
+    return filtered_lines
+
 def wordlist_from_txtFile(filepath):
     """_summary_
 
@@ -34,6 +59,13 @@ def wordlist_from_txtFile(filepath):
         text = file.read()
         lines = text.split("\n")
     
+    # re_pattern = compile(r"^https?://")
+    
+    # filtered_lines = []
+    # for line in lines:
+    #     if re_pattern.match(line):
+    #         filtered_lines.append(line)
+
     
     return lines
 
@@ -45,7 +77,7 @@ def wordlists_from_folder(dirpath):
     list_txt_filepaths = []
     for file in files:
         if file.endswith('.txt'):
-            list_txt_filepaths.append(dirpath + r"\\" + file)
+            list_txt_filepaths.append(dirpath + "\\" + file)
     
     
     wordlists = []
@@ -73,6 +105,7 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
     Returns:
         (list of list): list of list containing floats, which scale each glyph element
     """
+    
 
     allGlyphData = [] #list of lists. List of all of the information needed to build all glyphs with the specified wordlists. Each element in list corresponds to the info to build one glyph.
     for i in range(0,len(articleData)):
@@ -82,6 +115,7 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
         
 
         text_words = text.split()
+
 
         glyph_data_counts = [] #this is our data to build one glyph. Each integer in the list will correspond to num of hits from each wordlist.
         
@@ -104,7 +138,7 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
         print("Abstract parsed",i+1,"/",len(articleData))
     #END FOR each entry in articleData list of dict
     word_hits = allGlyphData
-    print(word_hits)
+    print("word hits = ", word_hits)
 
     if search_metadata["scaling_type"] == "minmax":
 
