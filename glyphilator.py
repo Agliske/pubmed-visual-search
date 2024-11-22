@@ -5,7 +5,7 @@ import difflib
 import os
 from sklearn.preprocessing import MinMaxScaler
 from numpy import min, max, array
-from re import compile
+from re import compile, match
 #import spacy #for natural language processing ie. when I want to include context-aware word searching
 
 #usage order: 
@@ -35,11 +35,17 @@ def searchlist_from_txtFile(filepath):
         text = file.read()
         lines = text.split("\n")
     
-    re_pattern = compile(r"^https?://")
-    
+    re_pattern_url = compile(r"^https?://")
+    # re_pattern_filepath = compile(r"""/^(?:[a-z]:)?[\/\\]{0,2}(?:[.\/\\ ](?![.\/\\\n])|[^<>:"|?*.\/\\ \n])+$/gmi""")
+    # re_pattern_filepath = compile(r'^(?:[a-z]:)?[\/\\]{0,2}(?:[.\/\\ ](?![.\/\\\n])|[^<>:|?*.\/\\ \n])+$')
+
     filtered_lines = []
     for line in lines:
-        if re_pattern.match(line):
+        if re_pattern_url.match(line):
+            # print(line, "identified as url")
+            filtered_lines.append(line)
+        if os.path.exists(line) == True:
+            # print(line, "identified as filepath")
             filtered_lines.append(line)
 
     
@@ -93,7 +99,9 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
                                             "search_string": "sample string",
                                             "num_results_requested": 200,
                                             "scaling_range": (0.2,2.5),
-                                            "scaling_type": "minmax"}):
+                                            "scaling_type": "minmax",
+                                            "scaling_scope":"dataset"}
+                                            ):
     """
     generateGlyphInput _summary_
 
@@ -124,7 +132,7 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
             wordlist_hits = 0
             for search_word in wordlist: #for each word in the wordlist, find any matches in the text, and add them to the total hits for that wordlist
 
-                matches = difflib.get_close_matches(search_word,text_words,n=20,cutoff=0.6)
+                matches = difflib.get_close_matches(search_word,text_words,n=20,cutoff=search_metadata["search_fuzziness"])
                 # print("there were ",len(matches)," matches. The match was",str(matches),)
                 wordlist_hits = wordlist_hits + len(matches)
             
@@ -138,18 +146,31 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
         print("Abstract parsed",i+1,"/",len(articleData))
     #END FOR each entry in articleData list of dict
     word_hits = allGlyphData
-    print("word hits = ", word_hits)
+    # print("word hits = ", word_hits)
 
     if search_metadata["scaling_type"] == "minmax":
-
-        # def minmax_scaling(data):
-        data_array = array(allGlyphData)
-        min_val = min(data_array)
-        max_val = max(data_array)
+        
         min_target = search_metadata["scaling_range"][0]
         max_target = search_metadata["scaling_range"][1]
-        scaledAllGlyphData = min_target + (data_array - min_val) * (max_target - min_target) / (max_val - min_val)
-        scaledAllGlyphData.tolist()
+        
+        data_array = array(allGlyphData)
+        print("scaling_scope is:",search_metadata["scaling_scope"])
+        if search_metadata["scaling_scope"] == "dataset":
+            min_val = min(data_array)
+            max_val = max(data_array)
+            scaledAllGlyphData = min_target + (data_array - min_val) * (max_target - min_target) / (max_val - min_val)
+            scaledAllGlyphData.tolist()
+        
+        if search_metadata["scaling_scope"] == "glyph":
+            scaledAllGlyphData = []
+            for i in range(0,len(data_array)):
+                min_val = min(data_array[i])
+                max_val = max(data_array[i])
+                scaledOneGlyphData = min_target + (data_array[i] - min_val) * (max_target - min_target) / (max_val - min_val)
+                scaledAllGlyphData.append(scaledOneGlyphData)
+            
+            # scaledAllGlyphData.tolist()
+            print("scaledAllGlyphData=",scaledAllGlyphData)
         # 
         # scaler = MinMaxScaler(feature_range=search_metadata["scaling_range"])
         # scaler.fit(allGlyphData)

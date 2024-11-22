@@ -4,11 +4,12 @@ from bs4 import Comment
 import requests
 import lxml
 import time
-
+import os
 import selenium
 import selenium.webdriver
 import selenium.webdriver.firefox
 import selenium.webdriver.firefox.options
+from datetime import datetime
 
 # Fetch the HTML content from a webpage
 url = 'https://www.nationalacademies.org/news/2024/10/workshop-explores-the-opportunity-and-perils-of-using-ai-in-medical-diagnosis'
@@ -102,7 +103,25 @@ def articleParse(url, method = 0):
 
     return articleData
 
+def txtFileParse(filepath):
+    filepath = str(filepath)
 
+    articleData = {
+        "url": url,
+        "title": None,
+        "date": None,
+        "content": ""
+    }
+
+    if filepath.endswith(".txt"):
+        with open(filepath) as file:
+            articleData["content"] = file.read()
+        
+        articleData["url"] = None#filepath
+        articleData["title"] = str(os.path.splitext(os.path.basename(filepath))[0])
+        articleData["date"] = str(datetime.fromtimestamp(os.path.getmtime(filepath)))
+
+    return articleData
 # article = articleParse(url)
 # print(article["content"])
 

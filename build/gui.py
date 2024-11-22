@@ -27,7 +27,7 @@ sys.path.append(DaveArticleScraperDir)
 
 from glyphilator import wordlists_from_folder,constructBasicGlyphs,searchlist_from_txtFile
 from pubmedFetcher import pubmedResults
-from paragraphParser import articleParse
+from paragraphParser import articleParse,txtFileParse
 from asyncPubmedFetcher import pubmedResultsAsync
 
 
@@ -62,10 +62,12 @@ num_results_requested = 200
 search_metadata = {
                                             "geometrySelection": "Toroid", 
                                             "wordlist_paths" : ["path/to/WL1.txt","path/to/WL2.txt","path/to/WL3.txt"],
+                                            "search_fuzziness":0.6,
                                             "search_string": "sample string",
                                             "num_results_requested": 200,
                                             "scaling_range": (0.2,2.5),
-                                            "scaling_type": "minmax"}
+                                            "scaling_type": "minmax",
+                                            "scaling_scope":"dataset"} #determines if glyphs scaling is relative to max and min of whole dataset, or just 1 glyph.
 
 ############################################################################################################
 # Definitions
@@ -235,20 +237,27 @@ def parse_wordlist_and_search():
 
     
     final_wordlists = wordlists_from_folder(current_wordlist_folder)
+    antz_base_path = os.path.join(cwd, "antz", "antz")
 
     if pubmed_search_url != None:
         final_articleData = pubmedResults(pubmed_search_url,num_results_requested=num_results_requested)
     if custom_url_searchlist != None:
         final_articleData = []
         for url in custom_url_searchlist:
+            if os.path.exists(url) == True: #if the string is a filepath, parse it like txt file
+                txtfiledata = txtFileParse(url)
+                final_articleData.append(txtfiledata)
+                print("text file processed")
+                continue
             urlData = articleParse(url)
             final_articleData.append(urlData)
-
+    print("Done. All Media Data compiled")
     # else:
     #     print('This wordlist has already been parsed')
 
 def construct_viz_data():
     global search_metadata
+    global final_articleData
 
     final_wordlists = wordlists_from_folder(current_wordlist_folder)
     
@@ -291,8 +300,8 @@ def construct_viz_data():
 
     #  collecting metadata related to search. 
     # # Copying Wordlists into folder
-    wordlist_destination = os.path.join(time_directory_path,"search_metadata")
-    os.mkdir(wordlist_destination) 
+    wordlist_destination = os.path.join(time_directory_path,"search_metadata","wordlists")
+    os.makedirs(wordlist_destination,exist_ok=True) 
     for file in pathlib.Path(current_wordlist_folder).rglob("*"):
         shutil.copy(file,wordlist_destination)
 
@@ -302,16 +311,28 @@ def construct_viz_data():
     list_txt_filepaths = []
     for file in wordlists:
         if file.endswith('.txt'):
-            file_abs_path = wordlist_destination + r"\\" + file
-            list_txt_filepaths.append(os.path.relpath(file_abs_path,antz_base_path))
+            wordlist_abs_path = wordlist_destination + r"\\" + file
+            list_txt_filepaths.append(os.path.relpath(wordlist_abs_path,antz_base_path))
     
     #copying the custom url searchlist txt file into the wordlist destination folder, and setting search_metadata["search_string"] to point to the copied url
     if custom_url_searchlist != None:
-        print("search string = ", search_metadata["search_string"])
+        search_metadata["search_string"] = url_searchlist_textbox.get()
+        # print("search string = ", search_metadata["search_string"])
         shutil.copy(search_metadata["search_string"],wordlist_destination)
         search_metadata["search_string"] = os.path.relpath(wordlist_destination + r"\\" + os.path.basename(search_metadata["search_string"]),antz_base_path)
+        #copying the filepath
+        # print(custom_url_searchlist)
+        search_file_destination = os.path.join(time_directory_path,"search_metadata","searched_files")
+        os.mkdir(search_file_destination)
+        # list_custom_files_paths = []
+        for i in range(0,len(custom_url_searchlist)):
+            if os.path.exists(custom_url_searchlist[i]) == True: #if the item is a filepath, copy the file into the search_metadata/searched_files dir, change the articledata["url"] to be the copied filepath
+                file_abs_path = search_file_destination + r"\\" + os.path.basename(custom_url_searchlist[i])
+                final_articleData[i]["url"] = os.path.relpath(file_abs_path,antz_base_path)
+                shutil.copy(custom_url_searchlist[i],search_file_destination)
 
     search_metadata["wordlist_paths"] = list_txt_filepaths
+    # search_metadata["custom_list_file_paths"] = list_custom_files_paths
     # if custom_url_searchlist == None: search_metadata['search_string'] = [entry_1.get()] #THIS INFO WAS ASSIGNED WHEN SEARCH CONFIRM BUTTON CLIckEd AND when URL SEARCHLIST UPLOADED
     # if custom_url_searchlist != None: search_metadata['search_string'] = ["Used URL Searchlist", url_searchlist_textbox.get()]
     search_metadata["geometrySelection"] = geometryDropdown.get()
@@ -320,6 +341,7 @@ def construct_viz_data():
     # print(search_metadata["scaling_range"])
 
     print('generating antz and tag file')
+    print("scaling scope when buttonpressed is:",search_metadata["scaling_scope"])
     #replacing articleScraperOutput_np_node, and articleScraperOutput_np_tag with our newly calculated versions
     # final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists,search_metadata)
     antzfile,tagfile = constructBasicGlyphs(final_articleData,final_wordlists,search_metadata)
@@ -466,6 +488,41 @@ geometryDropdown.place(x=21, y=420, height=26, width=100)
 geometryDropdown.bind("<<ComboboxSelected>>", change_glyph_geo_selection)
 geometryDropdown.insert(0,'Toroid')
 
+#create the fuzzifier slider
+canvas.create_text(415,174, anchor="nw", text="Search Fuzziness", fill="#FFFFFF", font=("Inter", 15 * -1))
+canvas.create_text(415,200, anchor="nw", text="Require \nany match", fill="#FFFFFF", font=("Inter", 11 * -1))
+canvas.create_text(590,200, anchor="nw", text="Require \nexact match", fill="#FFFFFF", font=("Inter", 11 * -1))
+
+fuzzifier_val = 0.6
+def fuzzifier_changed(event):
+    global search_metadata
+    search_metadata["search_fuzziness"] = round(fuzzifier.get(),2)
+    print("Search Fuzziness Changed to:", search_metadata["search_fuzziness"])
+fuzzifier = ttk.Scale(window, from_=0, to=1, variable=fuzzifier_val,command=fuzzifier_changed)
+fuzzifier.set(0.6)
+fuzzifier.place(x=480, y=200,height=26, width=100)
+
+#create dropdown to select scaling type
+canvas.create_text(21,530, anchor="nw", text="Scaling Type", fill="#FFFFFF", font=("Inter", 15 * -1))
+scaletypeDropdown = ttk.Combobox(values=["minmax"],)
+scaletypeDropdown.place(x=21, y=550, height=26, width=100)
+scaletypeDropdown.set("minmax")
+def scaletypeChanged(event):
+    global search_metadata
+    search_metadata["scaling_type"] = scaletypeDropdown.get()
+    print("scaling type changed to",search_metadata["scaling_type"])
+scaletypeDropdown.bind("<<ComboboxSelected>>",scaletypeChanged)
+
+#Create the dropdown to select scaling scope (by gyph or by dataset)
+canvas.create_text(21,580, anchor="nw", text="Scaling Scope", fill="#FFFFFF", font=("Inter", 15 * -1))
+scalescopeDropdown = ttk.Combobox(values=["dataset","glyph"])
+scalescopeDropdown.place(x=21, y=600, height=26, width=100)
+scalescopeDropdown.set("dataset")
+def scalescopeChanged(event):
+    global search_metadata
+    search_metadata["scaling_scope"] = scalescopeDropdown.get()
+    print("scaling type changed to",search_metadata["scaling_scope"])
+scalescopeDropdown.bind("<<ComboboxSelected>>",scalescopeChanged)
 
 button_image_1 = PhotoImage(
     file=relative_to_assets("button_1.png"))
@@ -758,7 +815,7 @@ button_8 = Button(
     highlightthickness=0,
     command=lambda: (print("button_8 clicked"),
                      upload_url_list(),
-                     print(custom_url_searchlist)),
+                     print("Found URL or Filepath:",len(custom_url_searchlist))),
     relief="flat"
 )
 button_8.place(

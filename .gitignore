@@ -5,3 +5,4 @@ gui.build/*
 gui.dist/*
 antz/*
 *.7z
+*.zip
