@@ -6,6 +6,8 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 from numpy import min, max, array
 from re import compile, match
+from concurrent.futures import ProcessPoolExecutor
+import itertools
 #import spacy #for natural language processing ie. when I want to include context-aware word searching
 
 #usage order: 
@@ -170,7 +172,8 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
                 scaledAllGlyphData.append(scaledOneGlyphData)
             
             # scaledAllGlyphData.tolist()
-            print("scaledAllGlyphData=",scaledAllGlyphData)
+            print("scaledAllGlyphData type = ", type(scaledAllGlyphData))
+            # print("scaledAllGlyphData=",scaledAllGlyphData)
         # 
         # scaler = MinMaxScaler(feature_range=search_metadata["scaling_range"])
         # scaler.fit(allGlyphData)
@@ -181,6 +184,92 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
     
     return scaledAllGlyphData,word_hits
 
+def count_words(articleData, wordlists,search_metadata = {
+                                            "geometrySelection": "Toroid", 
+                                            "wordlist_paths" : ["path/to/WL1.txt","path/to/WL2.txt","path/to/WL3.txt"],
+                                            "search_string": "sample string",
+                                            "num_results_requested": 200,
+                                            "scaling_range": (0.2,2.5),
+                                            "scaling_type": "minmax",
+                                            "scaling_scope":"dataset",
+                                            "search_fuzziness":0.6}
+                                            ):
+    text = articleData["content"]
+    text = str(text)
+    
+
+    text_words = text.split()
+
+
+    glyph_data_counts = [] #this is our data to build one glyph. Each integer in the list will correspond to num of hits from each wordlist.
+    
+    for wordlist in wordlists: #for each wordlist
+
+        wordlist_hits = 0
+        for search_word in wordlist: #for each word in the wordlist, find any matches in the text, and add them to the total hits for that wordlist
+
+            matches = difflib.get_close_matches(search_word,text_words,n=20,cutoff=search_metadata["search_fuzziness"])
+            # print("there were ",len(matches)," matches. The match was",str(matches),)
+            wordlist_hits = wordlist_hits + len(matches)
+            
+            #END FOR search_word in wordlist
+        glyph_data_counts.append(wordlist_hits)
+    
+    # print("Article Data Processed")
+    
+    return glyph_data_counts
+
+def generateGlyphInputConcurrent(articleData, wordlists, search_metadata = {
+                                            "geometrySelection": "Toroid", 
+                                            "wordlist_paths" : ["path/to/WL1.txt","path/to/WL2.txt","path/to/WL3.txt"],
+                                            "search_string": "sample string",
+                                            "num_results_requested": 200,
+                                            "scaling_range": (0.2,2.5),
+                                            "scaling_type": "minmax",
+                                            "scaling_scope":"dataset"}
+                                            ):
+    
+    
+    with ProcessPoolExecutor() as exe:
+        results = exe.map(count_words, articleData,itertools.repeat(wordlists),itertools.repeat(search_metadata))
+    
+    allGlyphData = list(results)
+    word_hits = allGlyphData
+    
+    if search_metadata["scaling_type"] == "minmax":
+        
+        min_target = search_metadata["scaling_range"][0]
+        max_target = search_metadata["scaling_range"][1]
+        
+        data_array = array(allGlyphData)
+        print("scaling_scope is:",search_metadata["scaling_scope"])
+        if search_metadata["scaling_scope"] == "dataset":
+            min_val = min(data_array)
+            max_val = max(data_array)
+            scaledAllGlyphData = min_target + (data_array - min_val) * (max_target - min_target) / (max_val - min_val)
+            scaledAllGlyphData.tolist()
+        
+        if search_metadata["scaling_scope"] == "glyph":
+            scaledAllGlyphData = []
+            for i in range(0,len(data_array)):
+                min_val = min(data_array[i])
+                max_val = max(data_array[i])
+                scaledOneGlyphData = min_target + (data_array[i] - min_val) * (max_target - min_target) / (max_val - min_val)
+                scaledAllGlyphData.append(scaledOneGlyphData.tolist())
+            
+            # scaledAllGlyphData.tolist()
+            print("type scaledAllGlyphData", type(scaledAllGlyphData))
+            print("scaledAllGlyphData=",scaledAllGlyphData)
+        # 
+        # scaler = MinMaxScaler(feature_range=search_metadata["scaling_range"])
+        # scaler.fit(allGlyphData)
+
+        # scaledAllGlyphData = scaler.transform(allGlyphData)
+    # print('we scaled allGlyphData')
+    # print(scaledAllGlyphData)
+    
+    return scaledAllGlyphData,word_hits
+    
 def generate_centered_grid(N, step=1): # N: integer number of points we want generated| step: float value of x and y distance we want our points to be spaced by
 
     coordinates = []
@@ -296,7 +385,7 @@ def constructBasicGlyphs(articleData, wordlists, search_metadata = {
     tagfile = pd.read_csv(tag_file_path)
     
     #calling generateGlyphInput to get allglyphdata, the antz ring scale value, and glyphdatacounts, to get the #hits from each wordlist for each tag
-    allGlyphData,glyphDataCounts = generateGlyphInput(articleData,wordlists,search_metadata)
+    allGlyphData,glyphDataCounts = generateGlyphInputConcurrent(articleData,wordlists,search_metadata)
     
 
     num_rings = len(allGlyphData[0]) #check len of a single glyph list. for each index in the list we'll make a ring

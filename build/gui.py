@@ -20,7 +20,7 @@ cwd = os.getcwd()
 DaveArticleScraperDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 if DaveArticleScraperDir != r"C:\Users\aglis\Documents\Python_Projects\DaveArticleScraper":
-    print('rerouted DaveArticleScraperDir')
+    # print('rerouted DaveArticleScraperDir')
     DaveArticleScraperDir = cwd
 
 sys.path.append(DaveArticleScraperDir)
@@ -52,7 +52,7 @@ wordlist_paths = {
 most_recent_wordlist_used = None
 
 
-current_wordlist_folder = None
+current_wordlist_folder = wordlist_paths[".!button"]
 last_button_clicked = None #{'button': None}
 pubmed_search_url = None
 custom_url_searchlist = None
@@ -125,6 +125,8 @@ def list_txt_files_in_folder(filepath):
 def display_current_wordlist():
      
     global current_wordlist_folder
+    global max_scale
+    global min_scale
 
     #first clear scrollable text window
     wordlistsScrollable.delete("1.0", END)
@@ -199,6 +201,9 @@ def confirm_pubmed_search():
     global pubmed_search_url
     global num_results_requested
     global search_metadata
+    global requested_results_text
+    global url_searchlist_textbox
+    global entry_1
 
     
     num_results_requested = int(requested_results_text.get())
@@ -340,8 +345,8 @@ def construct_viz_data():
     search_metadata["scaling_range"] = (float(max_scale.get())/(6),float(max_scale.get())) #min scale is 1/6 the max scale
     # print(search_metadata["scaling_range"])
 
-    print('generating antz and tag file')
-    print("scaling scope when buttonpressed is:",search_metadata["scaling_scope"])
+    print('generating antz and tag file. \n Initializing parallel processing')
+    # print("scaling scope when buttonpressed is:",search_metadata["scaling_scope"])
     #replacing articleScraperOutput_np_node, and articleScraperOutput_np_tag with our newly calculated versions
     # final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists,search_metadata)
     antzfile,tagfile = constructBasicGlyphs(final_articleData,final_wordlists,search_metadata)
@@ -373,690 +378,710 @@ def change_glyph_geo_selection(event):
     search_metadata["geometrySelection"] = geometryDropdown.get()
     print("Glyph geometry changed to", search_metadata["geometrySelection"])
 
-window = Tk()
+def main():
+    global wordlistsScrollable
+    global entry_1
+    global requested_results_text
+    global url_searchlist_textbox
+    global geometryDropdown
+    global max_scale
+    global min_scale
 
-window.geometry("853x655") #+200 pixels in y dir
-window.configure(bg = "#1C375E")
+    window = Tk()
 
-
-canvas = Canvas(
-    window,
-    bg = "#1C375E",
-    height = 655,
-    width = 853,
-    bd = 0,
-    highlightthickness = 0,
-    relief = "ridge"
-)
-
-canvas.place(x = 0, y = 0)
-entry_image_1 = PhotoImage(
-    file=relative_to_assets("entry_1.png"))
-entry_bg_1 = canvas.create_image(
-    160.0,
-    120.0,
-    image=entry_image_1
-)
-entry_1 = Entry(
-    bd=0,
-    bg="#D9D9D9",
-    fg="#000716",
-    highlightthickness=0
-)
-entry_1.place(
-    x=21.0,
-    y=107.0,
-    width=228.0,
-    height=24.0
-)
-
-canvas.create_text(
-    21.0,
-    83.0,
-    anchor="nw",
-    text="Enter Search String",
-    fill="#FFFFFF",
-    font=("Inter", 20 * -1)
-)
-canvas.create_text(
-    225,
-    90.0,
-    anchor="nw",
-    text="(num results requested)",
-    fill="#FFFFFF",
-    font=("Inter", 10 * -1)
-)
-
-canvas.create_text(
-    341.0+90,
-    83.0,
-    anchor="nw",
-    text="Upload Custom URL List",
-    fill="#FFFFFF",
-    font=("Inter", 20 * -1)
-)
-
-canvas.create_text(
-    21.0,
-    174.0,
-    anchor="nw",
-    text="Wordlists to Search Against",
-    fill="#FFFBFB",
-    font=("Inter", 15 * -1)
-)
-
-canvas.create_rectangle(
-    21.0,
-    192.0,
-    72.0,
-    360.0,
-    fill="#5DA2BE",
-    outline="")
-
-#the min and max scaling text boxes
-canvas.create_text(21,460, anchor="nw", text="Glyph Scaling (Min Max)", fill="#FFFFFF", font=("Inter", 15 * -1))
-min_scale = Entry(window)
-min_scale.place(x = 21, y = 480, height=26, width=35)
-min_scale.insert(0,"0.2")
-
-max_scale = Entry(window)
-max_scale.place(x = 60, y = 480, height=26, width=35)
-max_scale.insert(0,"2.5")
-
-#the upload url searchlist text editor
-url_searchlist_textbox = Entry(window)
-url_searchlist_textbox.place(x=341+90,y=107,width=148,height=26) #x+30
-
-#the requested results bar
-requested_results_text = Entry(window)
-requested_results_text.place(x=265 , y=107, width=50, height=26)
-requested_results_text.insert(0,'200')  
-
-#The Wordlists.txt viewer 
-wordlistsScrollable = scrolledtext.ScrolledText(window, wrap = WORD)
-wordlistsScrollable.place(x=72,y=192,width=262,height=168)
-
-#writing print messages to status terminal
-terminalScrollable = scrolledtext.ScrolledText(window, wrap = WORD)
-terminalScrollable.place(x=526,y=390,width=320,height=200)
-sys.stdout = RedirectText(terminalScrollable)
-
-#the select geometry choice dropdown (combobox)
-canvas.create_text(21,400, anchor="nw", text="Glyph Geometry", fill="#FFFFFF", font=("Inter", 15 * -1))
-geometryDropdown = ttk.Combobox(values = ["Sphere","Toroid","Cube","Octahedron"]) #plan to add cylinder
-geometryDropdown.place(x=21, y=420, height=26, width=100)
-geometryDropdown.bind("<<ComboboxSelected>>", change_glyph_geo_selection)
-geometryDropdown.insert(0,'Toroid')
-
-#create the fuzzifier slider
-canvas.create_text(415,174, anchor="nw", text="Search Fuzziness", fill="#FFFFFF", font=("Inter", 15 * -1))
-canvas.create_text(415,200, anchor="nw", text="Require \nany match", fill="#FFFFFF", font=("Inter", 11 * -1))
-canvas.create_text(590,200, anchor="nw", text="Require \nexact match", fill="#FFFFFF", font=("Inter", 11 * -1))
-
-fuzzifier_val = 0.6
-def fuzzifier_changed(event):
-    global search_metadata
-    search_metadata["search_fuzziness"] = round(fuzzifier.get(),2)
-    print("Search Fuzziness Changed to:", search_metadata["search_fuzziness"])
-fuzzifier = ttk.Scale(window, from_=0, to=1, variable=fuzzifier_val,command=fuzzifier_changed)
-fuzzifier.set(0.6)
-fuzzifier.place(x=480, y=200,height=26, width=100)
-
-#create dropdown to select scaling type
-canvas.create_text(21,530, anchor="nw", text="Scaling Type", fill="#FFFFFF", font=("Inter", 15 * -1))
-scaletypeDropdown = ttk.Combobox(values=["minmax"],)
-scaletypeDropdown.place(x=21, y=550, height=26, width=100)
-scaletypeDropdown.set("minmax")
-def scaletypeChanged(event):
-    global search_metadata
-    search_metadata["scaling_type"] = scaletypeDropdown.get()
-    print("scaling type changed to",search_metadata["scaling_type"])
-scaletypeDropdown.bind("<<ComboboxSelected>>",scaletypeChanged)
-
-#Create the dropdown to select scaling scope (by gyph or by dataset)
-canvas.create_text(21,580, anchor="nw", text="Scaling Scope", fill="#FFFFFF", font=("Inter", 15 * -1))
-scalescopeDropdown = ttk.Combobox(values=["dataset","glyph"])
-scalescopeDropdown.place(x=21, y=600, height=26, width=100)
-scalescopeDropdown.set("dataset")
-def scalescopeChanged(event):
-    global search_metadata
-    search_metadata["scaling_scope"] = scalescopeDropdown.get()
-    print("scaling type changed to",search_metadata["scaling_scope"])
-scalescopeDropdown.bind("<<ComboboxSelected>>",scalescopeChanged)
-
-button_image_1 = PhotoImage(
-    file=relative_to_assets("button_1.png"))
-button_selected_image_1 = PhotoImage(
-    file=relative_to_assets("button_1_selected.png"))
-button_1 = Button(
-    image=button_image_1,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (button_click(button_1,button_image_1,button_selected_image_1),
-                     print("button_1 clicked"),
-                     display_current_wordlist()),
-    relief="flat"
-)
-button_1.place(
-    x=21.0,
-    y=192.0,
-    width=51.0,
-    height=24.0
-)
-
-button_image_hover_1 = PhotoImage(
-    file=relative_to_assets("button_hover_1.png"))
-
-def button_1_hover(e):
-    if id(last_button_clicked['button']) == id(button_1):
-        return
-    button_1.config(
-        image=button_image_hover_1
-    )
-def button_1_leave(e):
-    
-    if id(last_button_clicked['button']) != id(button_1):
-        button_1.config(image=button_image_1)
-    
-    
-
-button_1.bind('<Enter>', button_1_hover)
-button_1.bind('<Leave>', button_1_leave)
+    window.geometry("853x655") #+200 pixels in y dir
+    window.configure(bg = "#1C375E")
 
 
-button_image_2 = PhotoImage(
-    file=relative_to_assets("button_2.png"))
-button_selected_image_2 = PhotoImage(
-    file=relative_to_assets("button_2_selected.png"))
-button_2 = Button(
-    image=button_image_2,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (button_click(button_2,button_image_2,button_selected_image_2),
-                     print("button_2 clicked"),
-                     display_current_wordlist()),
-                   
-    relief="flat"
-)
-button_2.place(
-    x=21.0,
-    y=216.0,
-    width=51.0,
-    height=24.0
-)
-
-button_image_hover_2 = PhotoImage(
-    file=relative_to_assets("button_hover_2.png"))
-
-def button_2_hover(e):
-    if id(last_button_clicked['button']) == id(button_2):
-        return
-    button_2.config(
-        image=button_image_hover_2
-    )
-def button_2_leave(e):
-
-    if id(last_button_clicked['button']) != id(button_2):
-        button_2.config(image=button_image_2)
-    # button_2.config(
-    #     image=button_image_2
-    # )
-
-button_2.bind('<Enter>', button_2_hover)
-button_2.bind('<Leave>', button_2_leave)
-
-
-button_image_3 = PhotoImage(
-    file=relative_to_assets("button_3.png"))
-button_selected_image_3 = PhotoImage(
-    file=relative_to_assets("button_3_selected.png"))
-button_3 = Button(
-    image=button_image_3,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (button_click(button_3,button_image_3,button_selected_image_3),
-                     display_current_wordlist(),
-                     print("button_3 clicked")),
-    relief="flat"
-)
-button_3.place(
-    x=21.0,
-    y=240.0,
-    width=51.0,
-    height=24.0
-)
-
-button_image_hover_3 = PhotoImage(
-    file=relative_to_assets("button_hover_3.png"))
-
-def button_3_hover(e):
-    if id(last_button_clicked['button']) == id(button_3):
-        return
-    button_3.config(
-        image=button_image_hover_3
-    )
-def button_3_leave(e):
-
-    if id(last_button_clicked['button']) != id(button_3):
-        button_3.config(image=button_image_3)
-    # button_3.config(
-    #     image=button_image_3
-    # )
-
-button_3.bind('<Enter>', button_3_hover)
-button_3.bind('<Leave>', button_3_leave)
-
-
-button_image_4 = PhotoImage(
-    file=relative_to_assets("button_4.png"))
-button_selected_image_4 = PhotoImage(
-    file=relative_to_assets("button_4_selected.png"))
-button_4 = Button(
-    image=button_image_4,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (button_click(button_4,button_image_4,button_selected_image_4),
-                     display_current_wordlist(),
-                     print("button_4 clicked")),
-    relief="flat"
-)
-button_4.place(
-    x=21.0,
-    y=264.0,
-    width=51.0,
-    height=24.0
-)
-
-button_image_hover_4 = PhotoImage(
-    file=relative_to_assets("button_hover_4.png"))
-
-def button_4_hover(e):
-    if id(last_button_clicked['button']) == id(button_4):
-        return
-    button_4.config(
-        image=button_image_hover_4
-    )
-def button_4_leave(e):
-    if id(last_button_clicked['button']) != id(button_4):
-        button_4.config(image=button_image_4)
-    # button_4.config(
-    #     image=button_image_4
-    # )
-
-button_4.bind('<Enter>', button_4_hover)
-button_4.bind('<Leave>', button_4_leave)
-
-
-button_image_5 = PhotoImage(
-    file=relative_to_assets("button_5.png"))
-button_selected_image_5 = PhotoImage(
-    file=relative_to_assets("button_5_selected.png"))
-button_5 = Button(
-    image=button_image_5,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (button_click(button_5,button_image_5,button_selected_image_5),
-                     display_current_wordlist(),
-                     print("button_5 clicked")),
-    relief="flat"
-)
-button_5.place(
-    x=21.0,
-    y=288.0,
-    width=51.0,
-    height=24.0
-)
-
-button_image_hover_5 = PhotoImage(
-    file=relative_to_assets("button_hover_5.png"))
-
-def button_5_hover(e):
-    if id(last_button_clicked['button']) == id(button_5):
-        return
-    button_5.config(
-        image=button_image_hover_5
-    )
-def button_5_leave(e):
-    if id(last_button_clicked['button']) != id(button_5):
-        button_5.config(image=button_image_5)
-    # button_5.config(
-    #     image=button_image_5
-    # )
-
-button_5.bind('<Enter>', button_5_hover)
-button_5.bind('<Leave>', button_5_leave)
-
-
-button_image_6 = PhotoImage(
-    file=relative_to_assets("button_6.png"))
-button_selected_image_6 = PhotoImage(
-    file=relative_to_assets("button_6_selected.png"))
-button_6 = Button(
-    image=button_image_6,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (button_click(button_6,button_image_6,button_selected_image_6),
-                     display_current_wordlist(),
-                     print("button_6 clicked")),
-    relief="flat"
-)
-button_6.place(
-    x=21.0,
-    y=312.0,
-    width=51.0,
-    height=24.0
-)
-
-button_image_hover_6 = PhotoImage(
-    file=relative_to_assets("button_hover_6.png"))
-
-def button_6_hover(e):
-    if id(last_button_clicked['button']) == id(button_6):
-        return
-    button_6.config(
-        image=button_image_hover_6
-    )
-def button_6_leave(e):
-    if id(last_button_clicked['button']) != id(button_6):
-        button_6.config(image=button_image_6)
-    # button_6.config(
-    #     image=button_image_6
-    # )
-
-button_6.bind('<Enter>', button_6_hover)
-button_6.bind('<Leave>', button_6_leave)
-
-
-button_image_7 = PhotoImage(
-    file=relative_to_assets("button_7.png"))
-button_selected_image_7 = PhotoImage(
-    file=relative_to_assets("button_7_selected.png"))
-button_7 = Button(
-    image=button_image_7,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (button_click(button_7,button_image_7,button_selected_image_7),
-                     display_current_wordlist(),
-                     print("button_7 clicked")),
-    relief="flat"
-)
-button_7.place(
-    x=21.0,
-    y=336.0,
-    width=51.0,
-    height=24.0
-)
-
-button_image_hover_7 = PhotoImage(
-    file=relative_to_assets("button_hover_7.png"))
-
-def button_7_hover(e):
-    if id(last_button_clicked['button']) == id(button_7):
-        return
-    button_7.config(
-        image=button_image_hover_7
-    )
-def button_7_leave(e):
-    if id(last_button_clicked['button']) != id(button_7):
-        button_7.config(image=button_image_7)
-    # button_7.config(
-    #     image=button_image_7
-    # )
-
-button_7.bind('<Enter>', button_7_hover)
-button_7.bind('<Leave>', button_7_leave)
-
-
-button_image_8 = PhotoImage(
-    file=relative_to_assets("button_8.png"))
-button_8 = Button(
-    image=button_image_8,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (print("button_8 clicked"),
-                     upload_url_list(),
-                     print("Found URL or Filepath:",len(custom_url_searchlist))),
-    relief="flat"
-)
-button_8.place(
-    x=496.0+86,
-    y=107.0,
-    width=51.0,
-    height=26.0
-)
-
-button_image_hover_8 = PhotoImage(
-    file=relative_to_assets("button_hover_8.png"))
-
-def button_8_hover(e):
-    button_8.config(
-        image=button_image_hover_8
-    )
-def button_8_leave(e):
-    button_8.config(
-        image=button_image_8
+    canvas = Canvas(
+        window,
+        bg = "#1C375E",
+        height = 655,
+        width = 853,
+        bd = 0,
+        highlightthickness = 0,
+        relief = "ridge"
     )
 
-button_8.bind('<Enter>', button_8_hover)
-button_8.bind('<Leave>', button_8_leave)
-
-
-button_image_9 = PhotoImage(
-    file=relative_to_assets("button_9.png"))
-button_9 = Button(
-    image=button_image_9,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (print("button_9 clicked"),
-                     upload_to_group()),
-    relief="flat"
-)
-button_9.place(
-    x=338.0,
-    y=334.0,
-    width=51.0,
-    height=26.0
-)
-
-button_image_hover_9 = PhotoImage(
-    file=relative_to_assets("button_hover_9.png"))
-
-def button_9_hover(e):
-    button_9.config(
-        image=button_image_hover_9
+    canvas.place(x = 0, y = 0)
+    entry_image_1 = PhotoImage(
+        file=relative_to_assets("entry_1.png"))
+    entry_bg_1 = canvas.create_image(
+        160.0,
+        120.0,
+        image=entry_image_1
     )
-def button_9_leave(e):
-    button_9.config(
-        image=button_image_9
+    entry_1 = Entry(
+        bd=0,
+        bg="#D9D9D9",
+        fg="#000716",
+        highlightthickness=0
+    )
+    entry_1.place(
+        x=21.0,
+        y=107.0,
+        width=228.0,
+        height=24.0
     )
 
-button_9.bind('<Enter>', button_9_hover)
-button_9.bind('<Leave>', button_9_leave)
-
-
-button_image_10 = PhotoImage(
-    file=relative_to_assets("button_10.png"))
-button_10 = Button(
-    image=button_image_10,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (print("button_10 clicked"),
-                     threading.Thread(target=parse_wordlist_and_search).start(),
-    ),
-    relief="flat"
-)
-button_10.place(
-    x=526.0,
-    y=406.0+200,
-    width=100.0,
-    height=37.0
-)
-
-button_image_hover_10 = PhotoImage(
-    file=relative_to_assets("button_hover_10.png"))
-
-def button_10_hover(e):
-    button_10.config(
-        image=button_image_hover_10
+    canvas.create_text(
+        21.0,
+        83.0,
+        anchor="nw",
+        text="Enter Search String",
+        fill="#FFFFFF",
+        font=("Inter", 20 * -1)
     )
-def button_10_leave(e):
-    button_10.config(
-        image=button_image_10
+    canvas.create_text(
+        225,
+        90.0,
+        anchor="nw",
+        text="(num results requested)",
+        fill="#FFFFFF",
+        font=("Inter", 10 * -1)
     )
 
-button_10.bind('<Enter>', button_10_hover)
-button_10.bind('<Leave>', button_10_leave)
-
-
-button_image_11 = PhotoImage(
-    file=relative_to_assets("button_11.png"))
-button_11 = Button(
-    image=button_image_11,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (print("button_11 clicked"),
-                     threading.Thread(target=construct_viz_data).start()),
-    relief="flat"
-)
-button_11.place(
-    x=634.0,
-    y=406.0+200,
-    width=100.0,
-    height=37.0
-)
-
-button_image_hover_11 = PhotoImage(
-    file=relative_to_assets("button_hover_11.png"))
-
-def button_11_hover(e):
-    button_11.config(
-        image=button_image_hover_11
-    )
-def button_11_leave(e):
-    button_11.config(
-        image=button_image_11
+    canvas.create_text(
+        341.0+90,
+        83.0,
+        anchor="nw",
+        text="Upload Custom URL List",
+        fill="#FFFFFF",
+        font=("Inter", 20 * -1)
     )
 
-button_11.bind('<Enter>', button_11_hover)
-button_11.bind('<Leave>', button_11_leave)
-
-
-button_image_12 = PhotoImage(
-    file=relative_to_assets("button_12.png"))
-button_12 = Button(
-    image=button_image_12,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (print("button_12 clicked"),
-                     open_in_antz()),
-    relief="flat"
-)
-button_12.place(
-    x=742.0,
-    y=406.0+200,
-    width=100.0,
-    height=37.0
-)
-
-button_image_hover_12 = PhotoImage(
-    file=relative_to_assets("button_hover_12.png"))
-
-def button_12_hover(e):
-    button_12.config(
-        image=button_image_hover_12
-    )
-def button_12_leave(e):
-    button_12.config(
-        image=button_image_12
+    canvas.create_text(
+        21.0,
+        174.0,
+        anchor="nw",
+        text="Wordlists to Search Against",
+        fill="#FFFBFB",
+        font=("Inter", 15 * -1)
     )
 
-button_12.bind('<Enter>', button_12_hover)
-button_12.bind('<Leave>', button_12_leave)
+    canvas.create_rectangle(
+        21.0,
+        192.0,
+        72.0,
+        360.0,
+        fill="#5DA2BE",
+        outline="")
+
+    #the min and max scaling text boxes
+    canvas.create_text(21,460, anchor="nw", text="Glyph Scaling (Min Max)", fill="#FFFFFF", font=("Inter", 15 * -1))
+    min_scale = Entry(window)
+    min_scale.place(x = 21, y = 480, height=26, width=35)
+    min_scale.insert(0,"0.2")
+
+    max_scale = Entry(window)
+    max_scale.place(x = 60, y = 480, height=26, width=35)
+    max_scale.insert(0,"2.5")
+
+    #the upload url searchlist text editor
+    url_searchlist_textbox = Entry(window)
+    url_searchlist_textbox.place(x=341+90,y=107,width=148,height=26) #x+30
+
+    #the requested results bar
+    requested_results_text = Entry(window)
+    requested_results_text.place(x=265 , y=107, width=50, height=26)
+    requested_results_text.insert(0,'200')  
+
+    #The Wordlists.txt viewer 
+    wordlistsScrollable = scrolledtext.ScrolledText(window, wrap = WORD)
+    wordlistsScrollable.place(x=72,y=192,width=262,height=168)
+
+    #writing print messages to status terminal
+    terminalScrollable = scrolledtext.ScrolledText(window, wrap = WORD)
+    terminalScrollable.place(x=526,y=390,width=320,height=200)
+    sys.stdout = RedirectText(terminalScrollable)
+
+    #the select geometry choice dropdown (combobox)
+    canvas.create_text(21,400, anchor="nw", text="Glyph Geometry", fill="#FFFFFF", font=("Inter", 15 * -1))
+    geometryDropdown = ttk.Combobox(values = ["Sphere","Toroid","Cube","Octahedron"]) #plan to add cylinder
+    geometryDropdown.place(x=21, y=420, height=26, width=100)
+    geometryDropdown.bind("<<ComboboxSelected>>", change_glyph_geo_selection)
+    geometryDropdown.insert(0,'Toroid')
+
+    #create the fuzzifier slider
+    canvas.create_text(415,174, anchor="nw", text="Search Fuzziness", fill="#FFFFFF", font=("Inter", 15 * -1))
+    canvas.create_text(415,200, anchor="nw", text="Require \nany match", fill="#FFFFFF", font=("Inter", 11 * -1))
+    canvas.create_text(590,200, anchor="nw", text="Require \nexact match", fill="#FFFFFF", font=("Inter", 11 * -1))
+
+    fuzzifier_val = 0.6
+    def fuzzifier_changed(event):
+        global search_metadata
+        search_metadata["search_fuzziness"] = round(fuzzifier.get(),2)
+        print("Search Fuzziness Changed to:", search_metadata["search_fuzziness"])
+    fuzzifier = ttk.Scale(window, from_=0, to=1, variable=fuzzifier_val,command=fuzzifier_changed)
+    fuzzifier.set(0.6)
+
+    fuzzifier.place(x=480, y=200,height=26, width=100)
+
+    #create dropdown to select scaling type
+    canvas.create_text(21,530, anchor="nw", text="Scaling Type", fill="#FFFFFF", font=("Inter", 15 * -1))
+    scaletypeDropdown = ttk.Combobox(values=["minmax"],)
+    scaletypeDropdown.place(x=21, y=550, height=26, width=100)
+    scaletypeDropdown.set("minmax")
+    def scaletypeChanged(event):
+        global search_metadata
+        search_metadata["scaling_type"] = scaletypeDropdown.get()
+        print("scaling type changed to",search_metadata["scaling_type"])
+    scaletypeDropdown.bind("<<ComboboxSelected>>",scaletypeChanged)
+
+    #Create the dropdown to select scaling scope (by gyph or by dataset)
+    canvas.create_text(21,580, anchor="nw", text="Scaling Scope", fill="#FFFFFF", font=("Inter", 15 * -1))
+    scalescopeDropdown = ttk.Combobox(values=["dataset","glyph"])
+    scalescopeDropdown.place(x=21, y=600, height=26, width=100)
+    scalescopeDropdown.set("dataset")
+    def scalescopeChanged(event):
+        global search_metadata
+        search_metadata["scaling_scope"] = scalescopeDropdown.get()
+        print("scaling type changed to",search_metadata["scaling_scope"])
+    scalescopeDropdown.bind("<<ComboboxSelected>>",scalescopeChanged)
+
+    button_image_1 = PhotoImage(
+        file=relative_to_assets("button_1.png"))
+    button_selected_image_1 = PhotoImage(
+        file=relative_to_assets("button_1_selected.png"))
+    button_1 = Button(
+        image=button_image_1,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (button_click(button_1,button_image_1,button_selected_image_1),
+                        print("Group 1 Selected"),
+                        display_current_wordlist()),
+        relief="flat"
+    )
+    button_1.place(
+        x=21.0,
+        y=192.0,
+        width=51.0,
+        height=24.0
+    )
+
+    button_image_hover_1 = PhotoImage(
+        file=relative_to_assets("button_hover_1.png"))
+
+    def button_1_hover(e):
+        if id(last_button_clicked['button']) == id(button_1):
+            return
+        button_1.config(
+            image=button_image_hover_1
+        )
+    def button_1_leave(e):
+        
+        if id(last_button_clicked['button']) != id(button_1):
+            button_1.config(image=button_image_1)
+        
+        
+
+    button_1.bind('<Enter>', button_1_hover)
+    button_1.bind('<Leave>', button_1_leave)
 
 
-# print(relative_to_assets('button_13.png'))
-button_image_13 = PhotoImage(
-    file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_13.PNG'))
-button_13 = Button(
-    image=button_image_13,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (print("button_13 clicked"),
-                     
-                     confirm_pubmed_search()),
+    button_image_2 = PhotoImage(
+        file=relative_to_assets("button_2.png"))
+    button_selected_image_2 = PhotoImage(
+        file=relative_to_assets("button_2_selected.png"))
+    button_2 = Button(
+        image=button_image_2,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (button_click(button_2,button_image_2,button_selected_image_2),
+                        print("Group 2 Selected"),
+                        display_current_wordlist()),
                     
-    relief="flat"
-)
-button_13.place(
-    x=302,
-    y=107.0,
-    width=51.0,
-    height=26.0
-)
-
-button_image_hover_13 = PhotoImage(
-    file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_hover_13.PNG'))
-
-def button_13_hover(e):
-    button_13.config(
-        image=button_image_hover_13
+        relief="flat"
     )
-def button_13_leave(e):
-    button_13.config(
-        image=button_image_13
+    button_2.place(
+        x=21.0,
+        y=216.0,
+        width=51.0,
+        height=24.0
     )
 
-button_13.bind('<Enter>', button_13_hover)
-button_13.bind('<Leave>', button_13_leave)
+    button_image_hover_2 = PhotoImage(
+        file=relative_to_assets("button_hover_2.png"))
 
-button_image_14 = PhotoImage(
-    file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_14.png'))
-button_14 = Button(
-    image=button_image_14,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: (print("button_14 clicked"),
-                     delete_from_group()),
-    relief="flat"
-)
-button_14.place(
-    x=338.0,
-    y=334.0-28,
-    width=51.0,
-    height=26.0
-)
+    def button_2_hover(e):
+        if id(last_button_clicked['button']) == id(button_2):
+            return
+        button_2.config(
+            image=button_image_hover_2
+        )
+    def button_2_leave(e):
 
-button_image_hover_14 = PhotoImage(
-    file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_hover_14.png'))
+        if id(last_button_clicked['button']) != id(button_2):
+            button_2.config(image=button_image_2)
+        # button_2.config(
+        #     image=button_image_2
+        # )
 
-def button_14_hover(e):
-    button_14.config(
-        image=button_image_hover_14
+    button_2.bind('<Enter>', button_2_hover)
+    button_2.bind('<Leave>', button_2_leave)
+
+
+    button_image_3 = PhotoImage(
+        file=relative_to_assets("button_3.png"))
+    button_selected_image_3 = PhotoImage(
+        file=relative_to_assets("button_3_selected.png"))
+    button_3 = Button(
+        image=button_image_3,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (button_click(button_3,button_image_3,button_selected_image_3),
+                        display_current_wordlist(),
+                        print("Group 3 Selected")),
+        relief="flat"
     )
-def button_14_leave(e):
-    button_14.config(
-        image=button_image_14
+    button_3.place(
+        x=21.0,
+        y=240.0,
+        width=51.0,
+        height=24.0
     )
 
-button_14.bind('<Enter>', button_14_hover)
-button_14.bind('<Leave>', button_14_leave)
+    button_image_hover_3 = PhotoImage(
+        file=relative_to_assets("button_hover_3.png"))
 
-canvas.create_text(
-    306.0+65,
-    107.0,
-    anchor="nw",
-    text="OR",
-    fill="#FFFFFF",
-    font=("Inter", 20 * -1)
-)
+    def button_3_hover(e):
+        if id(last_button_clicked['button']) == id(button_3):
+            return
+        button_3.config(
+            image=button_image_hover_3
+        )
+    def button_3_leave(e):
 
-canvas.create_text(
-    21.0,
-    20.0,
-    anchor="nw",
-    text="GlyphSearch",
-    fill="#FFFFFF",
-    font=("Inter Bold", 36 * -1)
-)
-window.resizable(False, False)
-window.mainloop()
+        if id(last_button_clicked['button']) != id(button_3):
+            button_3.config(image=button_image_3)
+        # button_3.config(
+        #     image=button_image_3
+        # )
+
+    button_3.bind('<Enter>', button_3_hover)
+    button_3.bind('<Leave>', button_3_leave)
+
+
+    button_image_4 = PhotoImage(
+        file=relative_to_assets("button_4.png"))
+    button_selected_image_4 = PhotoImage(
+        file=relative_to_assets("button_4_selected.png"))
+    button_4 = Button(
+        image=button_image_4,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (button_click(button_4,button_image_4,button_selected_image_4),
+                        display_current_wordlist(),
+                        print("Group 4 Selected")),
+        relief="flat"
+    )
+    button_4.place(
+        x=21.0,
+        y=264.0,
+        width=51.0,
+        height=24.0
+    )
+
+    button_image_hover_4 = PhotoImage(
+        file=relative_to_assets("button_hover_4.png"))
+
+    def button_4_hover(e):
+        if id(last_button_clicked['button']) == id(button_4):
+            return
+        button_4.config(
+            image=button_image_hover_4
+        )
+    def button_4_leave(e):
+        if id(last_button_clicked['button']) != id(button_4):
+            button_4.config(image=button_image_4)
+        # button_4.config(
+        #     image=button_image_4
+        # )
+
+    button_4.bind('<Enter>', button_4_hover)
+    button_4.bind('<Leave>', button_4_leave)
+
+
+    button_image_5 = PhotoImage(
+        file=relative_to_assets("button_5.png"))
+    button_selected_image_5 = PhotoImage(
+        file=relative_to_assets("button_5_selected.png"))
+    button_5 = Button(
+        image=button_image_5,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (button_click(button_5,button_image_5,button_selected_image_5),
+                        display_current_wordlist(),
+                        print("Group 5 Selected")),
+        relief="flat"
+    )
+    button_5.place(
+        x=21.0,
+        y=288.0,
+        width=51.0,
+        height=24.0
+    )
+
+    button_image_hover_5 = PhotoImage(
+        file=relative_to_assets("button_hover_5.png"))
+
+    def button_5_hover(e):
+        if id(last_button_clicked['button']) == id(button_5):
+            return
+        button_5.config(
+            image=button_image_hover_5
+        )
+    def button_5_leave(e):
+        if id(last_button_clicked['button']) != id(button_5):
+            button_5.config(image=button_image_5)
+        # button_5.config(
+        #     image=button_image_5
+        # )
+
+    button_5.bind('<Enter>', button_5_hover)
+    button_5.bind('<Leave>', button_5_leave)
+
+
+    button_image_6 = PhotoImage(
+        file=relative_to_assets("button_6.png"))
+    button_selected_image_6 = PhotoImage(
+        file=relative_to_assets("button_6_selected.png"))
+    button_6 = Button(
+        image=button_image_6,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (button_click(button_6,button_image_6,button_selected_image_6),
+                        display_current_wordlist(),
+                        print("Group 6 Selected")),
+        relief="flat"
+    )
+    button_6.place(
+        x=21.0,
+        y=312.0,
+        width=51.0,
+        height=24.0
+    )
+
+    button_image_hover_6 = PhotoImage(
+        file=relative_to_assets("button_hover_6.png"))
+
+    def button_6_hover(e):
+        if id(last_button_clicked['button']) == id(button_6):
+            return
+        button_6.config(
+            image=button_image_hover_6
+        )
+    def button_6_leave(e):
+        if id(last_button_clicked['button']) != id(button_6):
+            button_6.config(image=button_image_6)
+        # button_6.config(
+        #     image=button_image_6
+        # )
+
+    button_6.bind('<Enter>', button_6_hover)
+    button_6.bind('<Leave>', button_6_leave)
+
+
+    button_image_7 = PhotoImage(
+        file=relative_to_assets("button_7.png"))
+    button_selected_image_7 = PhotoImage(
+        file=relative_to_assets("button_7_selected.png"))
+    button_7 = Button(
+        image=button_image_7,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (button_click(button_7,button_image_7,button_selected_image_7),
+                        display_current_wordlist(),
+                        print("Group 7 Selected")),
+        relief="flat"
+    )
+    button_7.place(
+        x=21.0,
+        y=336.0,
+        width=51.0,
+        height=24.0
+    )
+
+    button_image_hover_7 = PhotoImage(
+        file=relative_to_assets("button_hover_7.png"))
+
+    def button_7_hover(e):
+        if id(last_button_clicked['button']) == id(button_7):
+            return
+        button_7.config(
+            image=button_image_hover_7
+        )
+    def button_7_leave(e):
+        if id(last_button_clicked['button']) != id(button_7):
+            button_7.config(image=button_image_7)
+        # button_7.config(
+        #     image=button_image_7
+        # )
+
+    button_7.bind('<Enter>', button_7_hover)
+    button_7.bind('<Leave>', button_7_leave)
+
+
+    button_image_8 = PhotoImage(
+        file=relative_to_assets("button_8.png"))
+    button_8 = Button(
+        image=button_image_8,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (print("button_8 clicked"),
+                        upload_url_list(),
+                        print("Found URL or Filepath:",len(custom_url_searchlist))),
+        relief="flat"
+    )
+    button_8.place(
+        x=496.0+86,
+        y=107.0,
+        width=51.0,
+        height=26.0
+    )
+
+    button_image_hover_8 = PhotoImage(
+        file=relative_to_assets("button_hover_8.png"))
+
+    def button_8_hover(e):
+        button_8.config(
+            image=button_image_hover_8
+        )
+    def button_8_leave(e):
+        button_8.config(
+            image=button_image_8
+        )
+
+    button_8.bind('<Enter>', button_8_hover)
+    button_8.bind('<Leave>', button_8_leave)
+
+
+    button_image_9 = PhotoImage(
+        file=relative_to_assets("button_9.png"))
+    button_9 = Button(
+        image=button_image_9,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (print("button_9 clicked"),
+                        upload_to_group()),
+        relief="flat"
+    )
+    button_9.place(
+        x=338.0,
+        y=334.0,
+        width=51.0,
+        height=26.0
+    )
+
+    button_image_hover_9 = PhotoImage(
+        file=relative_to_assets("button_hover_9.png"))
+
+    def button_9_hover(e):
+        button_9.config(
+            image=button_image_hover_9
+        )
+    def button_9_leave(e):
+        button_9.config(
+            image=button_image_9
+        )
+
+    button_9.bind('<Enter>', button_9_hover)
+    button_9.bind('<Leave>', button_9_leave)
+
+
+    button_image_10 = PhotoImage(
+        file=relative_to_assets("button_10.png"))
+    button_10 = Button(
+        image=button_image_10,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (print("Collecting Media Content"),
+                        threading.Thread(target=parse_wordlist_and_search).start(),
+        ),
+        relief="flat"
+    )
+    button_10.place(
+        x=526.0,
+        y=406.0+200,
+        width=100.0,
+        height=37.0
+    )
+
+    button_image_hover_10 = PhotoImage(
+        file=relative_to_assets("button_hover_10.png"))
+
+    def button_10_hover(e):
+        button_10.config(
+            image=button_image_hover_10
+        )
+    def button_10_leave(e):
+        button_10.config(
+            image=button_image_10
+        )
+
+    button_10.bind('<Enter>', button_10_hover)
+    button_10.bind('<Leave>', button_10_leave)
+
+
+    button_image_11 = PhotoImage(
+        file=relative_to_assets("button_11.png"))
+    button_11 = Button(
+        image=button_image_11,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (threading.Thread(target=construct_viz_data).start(),
+                         
+                        ),
+        relief="flat"
+    )
+    button_11.place(
+        x=634.0,
+        y=406.0+200,
+        width=100.0,
+        height=37.0
+    )
+
+    button_image_hover_11 = PhotoImage(
+        file=relative_to_assets("button_hover_11.png"))
+
+    def button_11_hover(e):
+        button_11.config(
+            image=button_image_hover_11
+        )
+    def button_11_leave(e):
+        button_11.config(
+            image=button_image_11
+        )
+
+    button_11.bind('<Enter>', button_11_hover)
+    button_11.bind('<Leave>', button_11_leave)
+
+
+    button_image_12 = PhotoImage(
+        file=relative_to_assets("button_12.png"))
+    button_12 = Button(
+        image=button_image_12,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (print("button_12 clicked"),
+                        open_in_antz()),
+        relief="flat"
+    )
+    button_12.place(
+        x=742.0,
+        y=406.0+200,
+        width=100.0,
+        height=37.0
+    )
+
+    button_image_hover_12 = PhotoImage(
+        file=relative_to_assets("button_hover_12.png"))
+
+    def button_12_hover(e):
+        button_12.config(
+            image=button_image_hover_12
+        )
+    def button_12_leave(e):
+        button_12.config(
+            image=button_image_12
+        )
+
+    button_12.bind('<Enter>', button_12_hover)
+    button_12.bind('<Leave>', button_12_leave)
+
+
+    # print(relative_to_assets('button_13.png'))
+    button_image_13 = PhotoImage(
+        file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_13.PNG'))
+    button_13 = Button(
+        image=button_image_13,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (print("button_13 clicked"),
+                        
+                        confirm_pubmed_search()),
+                        
+        relief="flat"
+    )
+    button_13.place(
+        x=302,
+        y=107.0,
+        width=51.0,
+        height=26.0
+    )
+
+    button_image_hover_13 = PhotoImage(
+        file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_hover_13.PNG'))
+
+    def button_13_hover(e):
+        button_13.config(
+            image=button_image_hover_13
+        )
+    def button_13_leave(e):
+        button_13.config(
+            image=button_image_13
+        )
+
+    button_13.bind('<Enter>', button_13_hover)
+    button_13.bind('<Leave>', button_13_leave)
+
+    button_image_14 = PhotoImage(
+        file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_14.png'))
+    button_14 = Button(
+        image=button_image_14,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (print("button_14 clicked"),
+                        delete_from_group()),
+        relief="flat"
+    )
+    button_14.place(
+        x=338.0,
+        y=334.0-28,
+        width=51.0,
+        height=26.0
+    )
+
+    button_image_hover_14 = PhotoImage(
+        file=os.path.join(DaveArticleScraperDir,'build','assets','frame0','button_hover_14.png'))
+
+    def button_14_hover(e):
+        button_14.config(
+            image=button_image_hover_14
+        )
+    def button_14_leave(e):
+        button_14.config(
+            image=button_image_14
+        )
+
+    button_14.bind('<Enter>', button_14_hover)
+    button_14.bind('<Leave>', button_14_leave)
+
+    canvas.create_text(
+        306.0+65,
+        107.0,
+        anchor="nw",
+        text="OR",
+        fill="#FFFFFF",
+        font=("Inter", 20 * -1)
+    )
+
+    canvas.create_text(
+        21.0,
+        20.0,
+        anchor="nw",
+        text="GlyphSearch",
+        fill="#FFFFFF",
+        font=("Inter Bold", 36 * -1)
+    )
+
+    button_click(button_1,button_image_1,button_selected_image_1)
+    display_current_wordlist()
+
+    window.resizable(False, False)
+    window.mainloop()
+
+
+if __name__ == "__main__":
+    main()
+    # button_click(button_1,button_image_1,button_selected_image_1)
