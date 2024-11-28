@@ -172,7 +172,7 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
                 scaledAllGlyphData.append(scaledOneGlyphData)
             
             # scaledAllGlyphData.tolist()
-            print("scaledAllGlyphData type = ", type(scaledAllGlyphData))
+            # print("scaledAllGlyphData type = ", type(scaledAllGlyphData))
             # print("scaledAllGlyphData=",scaledAllGlyphData)
         # 
         # scaler = MinMaxScaler(feature_range=search_metadata["scaling_range"])
@@ -199,25 +199,28 @@ def count_words(articleData, wordlists,search_metadata = {
     
 
     text_words = text.split()
-
+    article_Wordcount = len(text_words)
 
     glyph_data_counts = [] #this is our data to build one glyph. Each integer in the list will correspond to num of hits from each wordlist.
-    
+    matched_words = [] #list of list of str. holds the matches that were detected from each article
     for wordlist in wordlists: #for each wordlist
-
+        per_WL_matched_words = []#list of str. matched words for the current wordlist
         wordlist_hits = 0
         for search_word in wordlist: #for each word in the wordlist, find any matches in the text, and add them to the total hits for that wordlist
 
             matches = difflib.get_close_matches(search_word,text_words,n=20,cutoff=search_metadata["search_fuzziness"])
             # print("there were ",len(matches)," matches. The match was",str(matches),)
+            if len(matches) > 0: per_WL_matched_words.append(matches)
             wordlist_hits = wordlist_hits + len(matches)
             
             #END FOR search_word in wordlist
+        matched_words.append(per_WL_matched_words)
         glyph_data_counts.append(wordlist_hits)
+        
     
     # print("Article Data Processed")
     
-    return glyph_data_counts
+    return (glyph_data_counts,article_Wordcount,matched_words)
 
 def generateGlyphInputConcurrent(articleData, wordlists, search_metadata = {
                                             "geometrySelection": "Toroid", 
@@ -226,21 +229,39 @@ def generateGlyphInputConcurrent(articleData, wordlists, search_metadata = {
                                             "num_results_requested": 200,
                                             "scaling_range": (0.2,2.5),
                                             "scaling_type": "minmax",
-                                            "scaling_scope":"dataset"}
+                                            "scaling_scope":"dataset",
+                                            "save_matched_words":False,
+                                            "protos_save_path":"path/to/antz/save/dir"}
                                             ):
     
     
     with ProcessPoolExecutor() as exe:
         results = exe.map(count_words, articleData,itertools.repeat(wordlists),itertools.repeat(search_metadata))
     
-    allGlyphData = list(results)
+    allGlyphData = []
+    articleWordcounts = []
+    matched_words = []
+
+    for result in results:
+        glyphData, wordcount, matched = result
+        allGlyphData.append(glyphData)
+        articleWordcounts.append(wordcount)
+        matched_words.append(matched)
     word_hits = allGlyphData
     
     if search_metadata["scaling_type"] == "minmax":
         
         min_target = search_metadata["scaling_range"][0]
         max_target = search_metadata["scaling_range"][1]
-        
+
+        #creating scaling vals for level 2 toroid based on len(articleData["content"])
+        np.array(articleWordcounts)
+        max_val = max(articleWordcounts)
+        min_val = min(articleWordcounts)
+        articleLengths = min_target/10 + (articleWordcounts - min_val) * (max_target/10 - min_target/10) / (max_val - min_val)
+        articleLengths.tolist()
+        # articleLengths.append((max_val - min_val)/2) #appending the average at the end for the key glyph
+
         data_array = array(allGlyphData)
         print("scaling_scope is:",search_metadata["scaling_scope"])
         if search_metadata["scaling_scope"] == "dataset":
@@ -257,18 +278,8 @@ def generateGlyphInputConcurrent(articleData, wordlists, search_metadata = {
                 scaledOneGlyphData = min_target + (data_array[i] - min_val) * (max_target - min_target) / (max_val - min_val)
                 scaledAllGlyphData.append(scaledOneGlyphData.tolist())
             
-            # scaledAllGlyphData.tolist()
-            print("type scaledAllGlyphData", type(scaledAllGlyphData))
-            print("scaledAllGlyphData=",scaledAllGlyphData)
-        # 
-        # scaler = MinMaxScaler(feature_range=search_metadata["scaling_range"])
-        # scaler.fit(allGlyphData)
-
-        # scaledAllGlyphData = scaler.transform(allGlyphData)
-    # print('we scaled allGlyphData')
-    # print(scaledAllGlyphData)
     
-    return scaledAllGlyphData,word_hits
+    return scaledAllGlyphData,word_hits,articleLengths,articleWordcounts,matched_words
     
 def generate_centered_grid(N, step=1): # N: integer number of points we want generated| step: float value of x and y distance we want our points to be spaced by
 
@@ -365,7 +376,10 @@ def constructBasicGlyphs(articleData, wordlists, search_metadata = {
                                             "search_string": "sample string",
                                             "num_results_requested": 200,
                                             "scaling_range": (0.2,2.5),
-                                            "scaling_type": "absolute"}): 
+                                            "scaling_type": "absolute",
+                                            "save_matched_words":False,
+                                            "protos_save_path":"path/to/antz/save/dir"}
+                                            ): 
     
     
     geometrySelectionDict = {"Toroid":7,
@@ -385,7 +399,7 @@ def constructBasicGlyphs(articleData, wordlists, search_metadata = {
     tagfile = pd.read_csv(tag_file_path)
     
     #calling generateGlyphInput to get allglyphdata, the antz ring scale value, and glyphdatacounts, to get the #hits from each wordlist for each tag
-    allGlyphData,glyphDataCounts = generateGlyphInputConcurrent(articleData,wordlists,search_metadata)
+    allGlyphData,glyphDataCounts,articleLengths,articleWordcounts,matched_words = generateGlyphInputConcurrent(articleData,wordlists,search_metadata)
     
 
     num_rings = len(allGlyphData[0]) #check len of a single glyph list. for each index in the list we'll make a ring
@@ -428,8 +442,9 @@ def constructBasicGlyphs(articleData, wordlists, search_metadata = {
         node_id_layer2_toroid = node_id_counter #saving node id of layer 1 toroid to access in next for loop
         
         
+
         # print(flag_generating_key_glyph, "iteration = ",i)
-        if flag_generating_key_glyph != True:
+        if flag_generating_key_glyph == False:
             #placing the root glyph on the x-y plane
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'] = None
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_x'].astype('float')
@@ -438,12 +453,24 @@ def constructBasicGlyphs(articleData, wordlists, search_metadata = {
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] =None
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'].astype('float')
             working_glyph.loc[working_glyph['parent_id'] == 0,'translate_y'] = glyphLocations[i][1] #so we add the x,y coord of where we want the glyph
-    
+
+            #scaling toroid based upon how long the content was.
+            working_glyph.loc[working_glyph.index[1],['ratio']] = articleLengths[i]
+
             #adding text to root node tags. Display the title of the article, and embed the article url to be interacted with
             working_root_tags.loc[working_root_tags.index[0],'title'] = None
             working_root_tags.loc[working_root_tags.index[0],'title'].astype('str')
             working_root_tags.loc[working_root_tags.index[0],'title'] = generateTitleURLTag(articleData[i])
 
+
+            #generating tags for layer 2 toroid that include number of words in the article/abstract/text
+            layer2_toroid_tag = pd.read_csv(tag_file_path)
+            layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'tag_mode'] = 0
+            layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'np_tag_id'] = node_id_layer2_toroid
+            layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'record_id'] = node_id_layer2_toroid
+            tag_string = "text block # words = " + str(articleWordcounts[i])
+            layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'title'] = tag_string
+            tagfile = pd.concat([tagfile,layer2_toroid_tag])
 
         if flag_generating_key_glyph == True:
             
@@ -475,16 +502,18 @@ def constructBasicGlyphs(articleData, wordlists, search_metadata = {
 
             working_root_tags.loc[working_root_tags.index[0],'title'] = root_tag_string
 
+            #generating tags for layer 2 toroid that include the rest of the search metadata
+            layer2_toroid_tag = pd.read_csv(tag_file_path)
+            layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'tag_mode'] = 0
+            layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'np_tag_id'] = node_id_layer2_toroid
+            layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'record_id'] = node_id_layer2_toroid
+            tag_string = "results requested:" +str(search_metadata["num_results_requested"]) + "|" + "Scaling Type:" + search_metadata["scaling_type"] + "|"
+            layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'title'] = tag_string
+            tagfile = pd.concat([tagfile,layer2_toroid_tag])
+
         tagfile = pd.concat([tagfile,working_root_tags])
         
-        #generating tags for layer 2 toroid that include the rest of the search metadata
-        layer2_toroid_tag = pd.read_csv(tag_file_path)
-        layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'tag_mode'] = 0
-        layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'np_tag_id'] = node_id_layer2_toroid
-        layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'record_id'] = node_id_layer2_toroid
-        tag_string = "results requested:" +str(search_metadata["num_results_requested"]) + "|" + "Scaling Type:" + search_metadata["scaling_type"] + "|"
-        layer2_toroid_tag.loc[layer2_toroid_tag.index[0],'title'] = tag_string
-        tagfile = pd.concat([tagfile,layer2_toroid_tag])
+        
 
         for j in range(0,num_rings): #construct a ring in our glyph for each element in scaling data
             
@@ -557,7 +586,7 @@ def constructBasicGlyphs(articleData, wordlists, search_metadata = {
             print("Key Glyph Generated in Top Right Corner")
 
 
-    return antzfile,tagfile
+    return antzfile,tagfile,matched_words
 
 
 # glyphlocations = generate_centered_grid(50,10)

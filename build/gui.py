@@ -67,7 +67,9 @@ search_metadata = {
                                             "num_results_requested": 200,
                                             "scaling_range": (0.2,2.5),
                                             "scaling_type": "minmax",
-                                            "scaling_scope":"dataset"} #determines if glyphs scaling is relative to max and min of whole dataset, or just 1 glyph.
+                                            "scaling_scope":"dataset",
+                                            "save_matched_words":False,
+                                            "protos_save_path":"path/to/antz/save/dir"} #determines if glyphs scaling is relative to max and min of whole dataset, or just 1 glyph.
 
 ############################################################################################################
 # Definitions
@@ -284,6 +286,9 @@ def construct_viz_data():
         pass
     time_directory_name = "proto-" + date_noDash + "T" + current_time
     time_directory_path = os.path.join(date_directory_path,time_directory_name)
+    
+    #saving the path of where we're saving stuff to access while we're generating tags
+    search_metadata["protos_save_path"] = time_directory_path
 
     #making the time directory
     os.mkdir(time_directory_path)
@@ -349,7 +354,9 @@ def construct_viz_data():
     # print("scaling scope when buttonpressed is:",search_metadata["scaling_scope"])
     #replacing articleScraperOutput_np_node, and articleScraperOutput_np_tag with our newly calculated versions
     # final_allGlyphData = generateGlyphInput(final_articleData,final_wordlists,search_metadata)
-    antzfile,tagfile = constructBasicGlyphs(final_articleData,final_wordlists,search_metadata)
+    antzfile,tagfile,matched_words = constructBasicGlyphs(final_articleData,final_wordlists,search_metadata)
+    if search_metadata["save_matched_words"] == True:
+        pass #
     antzfile.to_csv(os.path.join(time_directory_path,'csv',"articleScraperOutput_np_node.csv"),index=False,encoding="utf-8")
     tagfile.to_csv(os.path.join(time_directory_path,'csv',"articleScraperOutput_np_tag.csv"),index=False,encoding="utf-8")
 
@@ -378,6 +385,27 @@ def change_glyph_geo_selection(event):
     search_metadata["geometrySelection"] = geometryDropdown.get()
     print("Glyph geometry changed to", search_metadata["geometrySelection"])
 
+def add_to_searchlist_txt():
+    global custom_url_searchlist
+    if custom_url_searchlist == None:
+        print("Please select a searchlist before attempting to add paths to it")
+        return
+    filepaths_list = filedialog.askopenfilenames()
+    # print(filepaths_list)
+    # for path in filepaths_list:
+    
+    with open(url_searchlist_textbox.get(),"a") as file:
+        for path in filepaths_list:
+            if path.endswith(".txt"):
+                writestring = "\n" + path
+                file.write(writestring)
+            else:
+                print("File not added: Not a .txt file: ",os.path.basename(path))
+    
+    url_list_path = url_searchlist_textbox.get()
+    custom_url_searchlist = searchlist_from_txtFile(url_list_path)
+    print("Found URL or Filepath:", len(custom_url_searchlist))
+    
 def main():
     global wordlistsScrollable
     global entry_1
@@ -506,6 +534,8 @@ def main():
     canvas.create_text(415,174, anchor="nw", text="Search Fuzziness", fill="#FFFFFF", font=("Inter", 15 * -1))
     canvas.create_text(415,200, anchor="nw", text="Require \nany match", fill="#FFFFFF", font=("Inter", 11 * -1))
     canvas.create_text(590,200, anchor="nw", text="Require \nexact match", fill="#FFFFFF", font=("Inter", 11 * -1))
+
+    #create add files to searchlist:
 
     fuzzifier_val = 0.6
     def fuzzifier_changed(event):
@@ -1056,6 +1086,47 @@ def main():
 
     button_14.bind('<Enter>', button_14_hover)
     button_14.bind('<Leave>', button_14_leave)
+
+    button_image_15 = PhotoImage(
+        file=relative_to_assets("button_9.png"))
+    button_15 = Button(
+        image=button_image_9,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: (print("button_15 clicked"),
+                        add_to_searchlist_txt()),
+        relief="flat"
+    )
+    button_15.place(
+        x=582.0,
+        y=138.0,
+        width=51.0,
+        height=26.0
+    )
+
+    button_image_hover_15 = PhotoImage(
+        file=relative_to_assets("button_hover_9.png"))
+
+    def button_15_hover(e):
+        button_15.config(
+            image=button_image_hover_9
+        )
+    def button_15_leave(e):
+        button_15.config(
+            image=button_image_9
+        )
+
+    button_15.bind('<Enter>', button_15_hover)
+    button_15.bind('<Leave>', button_15_leave)
+    canvas.create_text(
+        431,
+        138,
+        anchor="nw",
+        text="Append Paths to Searchlist",
+        fill="#FFFFFF",
+        font=("Inter", 12 * -1)
+    )
+
 
     canvas.create_text(
         306.0+65,
