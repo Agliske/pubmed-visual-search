@@ -8,6 +8,8 @@ from numpy import min, max, array
 from re import compile, match
 from concurrent.futures import ProcessPoolExecutor
 import itertools
+from multiprocessing import Manager
+from multiprocessing.managers import DictProxy
 #import spacy #for natural language processing ie. when I want to include context-aware word searching
 
 #usage order: 
@@ -102,7 +104,8 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
                                             "num_results_requested": 200,
                                             "scaling_range": (0.2,2.5),
                                             "scaling_type": "minmax",
-                                            "scaling_scope":"dataset"}
+                                            "scaling_scope":"dataset",
+                                            "search_fuzziness":0.6}
                                             ):
     """
     generateGlyphInput _summary_
@@ -184,7 +187,14 @@ def generateGlyphInput(articleData, wordlists, search_metadata = {
     
     return scaledAllGlyphData,word_hits
 
-def count_words(articleData, wordlists,search_metadata = {
+def convert_shared_to_reg_dict(d):
+    return {
+        key: convert_shared_to_reg_dict(sub_d)
+        if isinstance(sub_d, DictProxy) else sub_d 
+        for key, sub_d in d.items()
+            }
+
+def count_words(articleData, wordlists, shared_dict, search_metadata = {
                                             "geometrySelection": "Toroid", 
                                             "wordlist_paths" : ["path/to/WL1.txt","path/to/WL2.txt","path/to/WL3.txt"],
                                             "search_string": "sample string",
@@ -207,16 +217,9 @@ def count_words(articleData, wordlists,search_metadata = {
         per_WL_matched_words = []#list of str. matched words for the current wordlist
         wordlist_hits = 0
         current_wordlist_path = antz_base_path + r"\\" + search_metadata["wordlist_paths"][i]
-
-         
-        
-        #making a dataframe of the wordlist, containing a column of str and a column of int. 
-        wordlist_dataframe = pd.read_csv(current_wordlist_path, sep=",",header=None, names=["Word"])
-        # print(wordlist_dataframe)
-        if "hitcount" not in wordlist_dataframe.columns:
-            wordlist_dataframe["hitcount"] = 0
-        wordlist_dataframe.set_index("Word", inplace=True)
-        # print(wordlist_datafr/ame)
+        # with shared_dict['lock']:
+        #     print(f"keys of dict {os.path.basename(current_wordlist_path)} = ",shared_dict['data'].keys())
+        #     print(f"len of dict {os.path.basename(current_wordlist_path)} = ", len(shared_dict['data'][os.path.basename(current_wordlist_path)]),"during worker process")
 
         for search_word in wordlists[i]: #for each word in the wordlist, find any matches in the text, and add them to the total hits for that wordlist
 
@@ -224,20 +227,26 @@ def count_words(articleData, wordlists,search_metadata = {
             # print("there were ",len(matches)," matches. The match was",str(matches),)
             if len(matches) > 0: 
                 per_WL_matched_words.append(matches)
-                if search_word in wordlist_dataframe.index:
+                wordlist_hits = wordlist_hits + len(matches) #for the tags
+                try:
+                    with shared_dict['lock']:
+                        # print(f"len of dict {os.path.basename(current_wordlist_path)} = ", len(shared_dict['data'][os.path.basename(current_wordlist_path)]))
+                        # print(f"# 'the' before this word's addition= ",shared_dict['data'][os.path.basename(current_wordlist_path)][search_word])
+                        shared_dict['data'][os.path.basename(current_wordlist_path)][search_word] += len(matches)
+                        # print(f"# 'the'= ",shared_dict['data'][os.path.basename(current_wordlist_path)][search_word])
                     # print("hitcount in dataframe = ", wordlist_dataframe.loc[search_word,"hitcount"],"should be 0. before we add anything")
-                    wordlist_dataframe.loc[search_word,"hitcount"] = wordlist_dataframe.loc[search_word,"hitcount"] + len(matches) #for the wordlist totals
-                    wordlist_hits = wordlist_hits + len(matches) #for the tags
-                else:
-                    print(f"Warning: {search_word} not found in the index!")
+                    # wordlist_dataframe.loc[search_word,"hitcount"] = wordlist_dataframe.loc[search_word,"hitcount"] + len(matches) #for the wordlist totals
+                    
+                except KeyError:
+                    print(f"Warning: {search_word} not found in the index of dict {os.path.basename(current_wordlist_path)}!")
                 
 
             
             
             
          #END FOR search_word in wordlist
-        print("hitcount for",os.path.basename(current_wordlist_path), " = ", wordlist_dataframe["hitcount"].sum())
-        wordlist_dataframe.to_csv(current_wordlist_path, sep=",", index=True, header=False)
+        # print("hitcount for",os.path.basename(current_wordlist_path), " = ", wordlist_dataframe["hitcount"].sum())
+        # wordlist_dataframe.to_csv(current_wordlist_path, sep=",", index=True, header=False)
         matched_words.append(per_WL_matched_words)
         glyph_data_counts.append(wordlist_hits)
         
@@ -272,14 +281,38 @@ def generateGlyphInputConcurrent(articleData, wordlists, search_metadata = {
 
     #     with open(current_wordlist_path, "w") as file:
     #         file.write("\n".join(lines))
+    #initializing a value of 0 for every word in every wordlist
+    
 
-    with ProcessPoolExecutor() as exe:
-        results = exe.map(count_words, articleData,itertools.repeat(wordlists),itertools.repeat(search_metadata))
+
+
+    with Manager() as manager:
+        wordlist_dict = {}
+        for WLpath in search_metadata["wordlist_paths"]:
+            wordcount_dict = manager.dict({})
+            WL_abs_path = os.path.join(antz_base_path,WLpath)
+            with open(WL_abs_path,'r') as file:
+                text = file.read()
+                lines = text.split("\n")
+                for word in lines:
+                    wordcount_dict[word] = 0
+            wordlist_dict[os.path.basename(WLpath)] = wordcount_dict
+            # print("len of dict", os.path.basename(WL_abs_path), '=', len(wordcount_dict),"during initialization")
+        
+        
+        shared_dict = manager.dict()
+        shared_dict['data'] = manager.dict(wordlist_dict)
+        shared_dict['lock'] = manager.Lock()
+        # print("we got past manager")
+        with ProcessPoolExecutor() as exe:
+            results = exe.map(count_words, articleData,itertools.repeat(wordlists),itertools.repeat(shared_dict),itertools.repeat(search_metadata))
+
+        final_count_dict = convert_shared_to_reg_dict(shared_dict["data"])
     
     allGlyphData = []
     articleWordcounts = []
     matched_words = []
-
+    
     for result in results:
         glyphData, wordcount, matched = result
         allGlyphData.append(glyphData)
@@ -287,6 +320,14 @@ def generateGlyphInputConcurrent(articleData, wordlists, search_metadata = {
         matched_words.append(matched)
     word_hits = allGlyphData
     
+
+    #writing each dict to the wordlist file that gets put into the search_metadata folder in the antz save thats created
+    for i in range(0,len(search_metadata["wordlist_paths"])):
+        current_wordlist_path = antz_base_path + r"\\" + search_metadata["wordlist_paths"][i]
+        with open(current_wordlist_path, 'w') as f:  
+            for key, value in final_count_dict[os.path.basename(current_wordlist_path)].items():  
+                f.write('%s:%s\n' % (key, value))
+
     if search_metadata["scaling_type"] == "minmax":
         
         min_target = search_metadata["scaling_range"][0]
@@ -315,7 +356,8 @@ def generateGlyphInputConcurrent(articleData, wordlists, search_metadata = {
                 max_val = max(data_array[i])
                 scaledOneGlyphData = min_target + (data_array[i] - min_val) * (max_target - min_target) / (max_val - min_val)
                 scaledAllGlyphData.append(scaledOneGlyphData.tolist())
-            
+        
+
     
     return scaledAllGlyphData,word_hits,articleLengths,articleWordcounts,matched_words
     
